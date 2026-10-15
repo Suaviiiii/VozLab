@@ -20,17 +20,17 @@
   <img src="https://img.shields.io/badge/idioma-português%20BR-009C3B?style=flat" alt="Português" />
 </p>
 
+> [!CAUTION]
+> ### ⛔ Este programa NÃO foi feito para rodar no processador (CPU)!
+> **Se você não tem uma placa de vídeo compatível, NÃO USE.** Sem placa, a geração fica extremamente lenta (um bloco pode levar vários minutos) e o PC pode travar.
+> O VozLab precisa de uma placa **AMD RX 6000/7000** ou **NVIDIA GTX 1000/RTX 3000**, com 4 a 8 GB. Confira a sua placa na [tabela](#-perfil-por-família-de-placa-de-vídeo) antes de instalar.
+
 <p align="center">
   <!-- Capturas da interface (servidor de teste, sem vozes importadas). Trocar por capturas com a biblioteca antes de publicar. -->
   <img src=".github/assets/tela-generate.jpg" alt="Tela principal do VozLab" width="800" />
   <br/><br/>
   <img src=".github/assets/tela-models.png" alt="Tela Models com o perfil da placa" width="800" />
 </p>
-
-> [!CAUTION]
-> ### ⛔ Este programa NÃO foi feito para rodar no processador (CPU)!
-> **Se você não tem uma placa de vídeo compatível, NÃO USE.** Sem placa, a geração fica extremamente lenta (um bloco pode levar vários minutos) e o PC pode travar.
-> O VozLab precisa de uma placa **AMD RX 6000/7000** ou **NVIDIA GTX 1000/RTX 3000**, com 4 a 8 GB. Confira a sua placa na [tabela](#-perfil-por-família-de-placa-de-vídeo) antes de instalar.
 
 ---
 
