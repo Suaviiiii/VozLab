@@ -1,11 +1,9 @@
 """FastAPI application factory, middleware, and lifecycle events."""
 
 import asyncio
-import ipaddress
 import logging
 import os
 import re
-import secrets
 import subprocess
 import sys
 from contextlib import asynccontextmanager
@@ -113,6 +111,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from urllib.parse import quote
 
 from . import __version__, config, database
+from .utils.acesso import acesso_remoto_liberado, eh_loopback
 from .services import tts, transcribe, llm
 from .database import get_db
 from .utils.platform_detect import get_backend_type
@@ -220,22 +219,13 @@ def _configure_cors(application: FastAPI) -> None:
         from fastapi.responses import JSONResponse
 
         addr = request.client.host if request.client else None
-        eh_loopback = False
-        if addr:
-            try:
-                eh_loopback = ipaddress.ip_address(addr).is_loopback
-            except ValueError:
-                eh_loopback = False
-        if not eh_loopback:
+        if not eh_loopback(addr):
             if not auth_token:
                 return JSONResponse(
                     {"detail": "Acesso remoto desativado. Defina VOICEBOX_AUTH_TOKEN para liberá-lo."},
                     status_code=403,
                 )
-            enviado = request.headers.get("authorization", "")
-            prefixo = "bearer "
-            token_enviado = enviado[len(prefixo):].strip() if enviado.lower().startswith(prefixo) else ""
-            if not (token_enviado and secrets.compare_digest(token_enviado, auth_token)):
+            if not acesso_remoto_liberado(addr, request.headers.get("authorization"), auth_token):
                 return JSONResponse({"detail": "Token de acesso inválido ou ausente."}, status_code=401)
 
         host = (request.headers.get("host") or "").lower()
