@@ -1,5 +1,9 @@
 # Instalar o VozLab (Windows 10/11)
 
+> [!CAUTION]
+> **⛔ Este programa NÃO foi feito para rodar no processador (CPU)! Se você não tem placa de vídeo compatível, NÃO USE.**
+> Sem placa, tudo fica extremamente lento e o PC pode travar. Antes de instalar, confira a sua placa no passo 1.
+
 > **Estado:** só a família **AMD RX 7000** foi testada (numa RX 7600, Windows 11). As outras famílias estão marcadas **NÃO TESTADO**: se você instalar numa delas, conte como foi abrindo uma *issue*. Isso ajuda muito.
 
 ## 1. Descubra a sua família de placa
