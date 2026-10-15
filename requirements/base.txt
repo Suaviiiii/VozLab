@@ -249,7 +249,7 @@ segments==2.4.0
 semantic-version==2.10.0
 sentencepiece==0.2.2
 sentry-sdk==2.71.0
-setuptools==69.5.1
+setuptools==78.1.1  # seguranca: corrige CVE-2024-6345 (command injection) e CVE-2025-47273 (path traversal). So afeta instalacao.
 shellingham==1.5.4
 simpleeval==1.0.8
 six==1.17.0
