@@ -10,7 +10,7 @@ usuário ouvir (mediana + 2 x desvio robusto, com teto alto). Nunca um limite fi
 Tudo desligado por padrão. Três chaves, escolhidas na tela para cada trabalho:
   - revisar:          o Whisper ouve e marca suspeitos;
   - refazer_sozinho:  refaz os reprovados (só com "revisar" ligado);
-  - voz_com_sotaque:  o sotaque engana o Whisper (testes da Fase 7 com a voz [FR] Chloé:
+  - voz_com_sotaque:  o sotaque engana o Whisper (testes da Fase 7 com uma voz francesa:
                       todos os julgamentos errados). Desliga a checagem de idioma e a
                       refação; só marca o que foge muito da curva ou perdeu fala.
 

@@ -25,9 +25,9 @@ static class VozLab
     const int Porta = 17493;
     // Caminhos (achado 5 da varredura): a pasta do programa é a pasta do próprio VozLab.exe.
     // Modelos, OmniVoice, ambiente Python e disfarce da placa podem ser trocados em vozlab.ini (ao lado do .exe):
-    //   ModelosDir=E:\Biblioteca de modelos de IA VOZ VOICEBOX
-    //   OmniVoiceDir=D:\OMNIVOICE
-    //   PythonDir=E:\Voicebox\venv_rocm
+    //   ModelosDir=D:\Modelos de voz
+    //   OmniVoiceDir=D:\OmniVoice
+    //   PythonDir=D:\VozLab\venv
     //   HsaOverride=11.0.0      (vazio = automático pela placa; "nenhum" = não usar)
     static readonly string ProjetoDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
     static readonly System.Collections.Generic.Dictionary<string, string> Ini = LerIni(Path.Combine(ProjetoDir, "vozlab.ini"));

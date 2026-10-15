@@ -348,7 +348,7 @@ else:
                 {"idx": 2, "text": "B2", "sample_rate": 24000},
             ],
             model_info={"engine": "kokoro", "model_size": "82M"},
-            voice_info={"profile_id": "thalita-1", "ref_audio_hash_sha256": None},
+            voice_info={"profile_id": "voz-teste-1", "ref_audio_hash_sha256": None},
             language="pt",
             original_text="B1 B2",
             generation_params={"base_seed": 42},

@@ -8,7 +8,7 @@
       "modelos": ["f5_tts"],
       "idiomas": ["pt"],
       "aviso": "F5-TTS em português errou 68% das palavras no nosso teste; os outros modelos ficaram entre 14% e 20%.",
-      "detalhe": "Teste de 1 página (17 blocos) com a voz [Studio] [BR] Thalita, medido pelo Whisper em 10/10/2026. O problema é o modelo em português, não os blocos. Dá para gerar mesmo assim.",
+      "detalhe": "Teste de 1 página (17 blocos) com uma voz brasileira de estúdio, medido pelo Whisper em 10/10/2026. O problema é o modelo em português, não os blocos. Dá para gerar mesmo assim.",
       "medido_em": "2026-10-10",
       "fonte": "relatorios/teste_texto_longo.md"
     },
@@ -17,7 +17,7 @@
       "modelos": ["qwen:1.7B", "qwen:0.6B"],
       "idiomas": ["pt"],
       "aviso": "Qwen em português: com uma voz sintética, 1 bloco em 20 saiu com sotaque de Portugal. Ouça os blocos.",
-      "detalhe": "Fase 7 (14/10/2026): com a voz [Studio] [BR] Thalita, o bloco 3 saiu em português de Portugal no 1.7B e no 0.6B. A voz gravada [Português] Feminino - PTBR68 não escorregou.",
+      "detalhe": "Fase 7 (14/10/2026): com uma voz brasileira de estúdio, o bloco 3 saiu em português de Portugal no 1.7B e no 0.6B. A voz gravada [Português] Feminino - PTBR68 não escorregou.",
       "medido_em": "2026-10-14",
       "fonte": "relatorios/texto_longo/fase7.md"
     },
