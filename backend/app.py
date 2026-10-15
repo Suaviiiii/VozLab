@@ -199,6 +199,31 @@ def _configure_cors(application: FastAPI) -> None:
         allow_headers=["*"],
     )
 
+    # Trava de origem (15/10/2026). O CORS só impede um site de LER as respostas; ele ainda consegue
+    # DISPARAR pedidos simples (ex.: POST /shutdown) para 127.0.0.1. Aqui:
+    # 1. Host: só nomes locais (bloqueia "DNS rebinding", um site se passando por 127.0.0.1);
+    # 2. pedidos que mudam algo (POST/PUT/PATCH/DELETE) vindos de um navegador só valem se a origem for
+    #    a própria tela do VozLab. Pedidos sem Origin (o próprio VozLab, OmniVoice, scripts locais) passam.
+    # Quem usa acesso remoto (--host 0.0.0.0) libera nomes em VOICEBOX_ALLOWED_HOSTS (separados por vírgula).
+    hosts_ok = {"127.0.0.1", "localhost", "[::1]", "tauri.localhost"} | {
+        h.strip().lower() for h in os.environ.get("VOICEBOX_ALLOWED_HOSTS", "").split(",") if h.strip()}
+    origens_ok = set(all_origins)
+
+    @application.middleware("http")
+    async def _trava_de_origem(request, call_next):
+        from fastapi.responses import JSONResponse
+
+        host = (request.headers.get("host") or "").lower()
+        nome = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]")[0] + "]"
+        if host and nome not in hosts_ok and "*" not in hosts_ok:
+            return JSONResponse({"detail": "Host não permitido"}, status_code=403)
+        if request.method not in ("GET", "HEAD", "OPTIONS"):
+            origem = request.headers.get("origin")
+            mesma_origem = origem in (f"http://{host}", f"https://{host}")
+            if origem is not None and origem not in origens_ok and not mesma_origem:
+                return JSONResponse({"detail": "Origem não permitida"}, status_code=403)
+        return await call_next(request)
+
 
 def _mount_frontend(application: FastAPI) -> None:
     """Serve the built web frontend when present (Docker / web deployment).
