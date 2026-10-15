@@ -3,7 +3,7 @@
 // 1. Se o servidor já responde em 127.0.0.1:17493, só abre a janela.
 // 2. Senão, liga o servidor do projeto (venv_rocm, mesmas variáveis do lançador
 //    antigo) sem janela preta, mostrando "Ligando o VozLab…" enquanto espera.
-// 3. Abre a interface nova numa janela própria (Edge/Chrome/Brave em modo app,
+// 3. Abre a interface nova numa janela própria (Brave/Chrome/Edge em modo app; Edge em InPrivate,
 //    com perfil separado em %LOCALAPPDATA%\VozLab\janela).
 // 4. Ao fechar a janela, desliga o servidor que ELE ligou (libera a VRAM).
 //    Se houver geração em andamento, espera terminar ou pergunta.
@@ -305,13 +305,15 @@ static class VozLab
         string pf = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles);
         string pf86 = Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86);
         string local = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+        // Edge por último (15/10/2026): num perfil novo ele entra sozinho na conta Microsoft do Windows.
         string[] candidatos = {
-            Path.Combine(pf86, @"Microsoft\Edge\Application\msedge.exe"),
-            Path.Combine(pf, @"Microsoft\Edge\Application\msedge.exe"),
+            Path.Combine(pf, @"BraveSoftware\Brave-Browser\Application\brave.exe"),
+            Path.Combine(local, @"BraveSoftware\Brave-Browser\Application\brave.exe"),
             Path.Combine(pf, @"Google\Chrome\Application\chrome.exe"),
             Path.Combine(pf86, @"Google\Chrome\Application\chrome.exe"),
             Path.Combine(local, @"Google\Chrome\Application\chrome.exe"),
-            Path.Combine(pf, @"BraveSoftware\Brave-Browser\Application\brave.exe"),
+            Path.Combine(pf86, @"Microsoft\Edge\Application\msedge.exe"),
+            Path.Combine(pf, @"Microsoft\Edge\Application\msedge.exe"),
         };
         foreach (string c in candidatos) if (File.Exists(c)) return c;
         return null;
@@ -328,7 +330,10 @@ static class VozLab
         Directory.CreateDirectory(PerfilJanela);
         ProcessStartInfo psi = new ProcessStartInfo(nav,
             "--app=\"" + Url + "\" --user-data-dir=\"" + PerfilJanela + "\" --no-first-run " +
-            "--no-default-browser-check --window-size=1440,900");
+            "--no-default-browser-check --window-size=1440,900" +
+            // No Edge, InPrivate: assim ele nunca entra na conta Microsoft nem pede login. As escolhas da
+            // tela ficam guardadas no próprio VozLab (preferencias.js), então nada se perde ao fechar.
+            (Path.GetFileName(nav).Equals("msedge.exe", StringComparison.OrdinalIgnoreCase) ? " --inprivate" : ""));
         psi.UseShellExecute = false;
         Log("Abrindo janela: " + nav);
         return Process.Start(psi);

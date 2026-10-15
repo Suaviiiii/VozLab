@@ -27,12 +27,14 @@ def register_routers(app: FastAPI) -> None:
     from .cloud import router as cloud_router
     from .voice_packs import router as voice_packs_router
     from .favoritos import router as favoritos_router
+    from .preferencias import router as preferencias_router
     from .perfil_placa import router as perfil_placa_router
 
     app.include_router(health_router)
     app.include_router(profiles_router)
     app.include_router(voice_packs_router)
     app.include_router(favoritos_router)
+    app.include_router(preferencias_router)
     app.include_router(perfil_placa_router)
     app.include_router(channels_router)
     app.include_router(generations_router)
