@@ -1,0 +1,16 @@
+# Copie este arquivo para a pasta do VozLab.exe com o nome vozlab.ini e ajuste os caminhos.
+# Linhas sem valor usam o padrao (entre parenteses).
+
+# Pasta dos modelos de IA (padrao: <pasta do VozLab>\modelos)
+ModelosDir=
+
+# Pasta do OmniVoice, com o iniciar_omnivoice_service.bat (padrao: <pasta do VozLab>\OmniVoice)
+OmniVoiceDir=
+
+# Ambiente Python do VozLab (padrao: <pasta do VozLab>\venv_rocm)
+PythonDir=
+
+# Disfarce do ROCm para placas AMD. Vazio = automatico pela placa:
+#   RX 7000 = 11.0.0 | RX 6000 = 10.3.0 | RX 9000 e NVIDIA = nenhum
+# Escreva "nenhum" para nunca usar.
+HsaOverride=

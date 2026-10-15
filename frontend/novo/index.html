@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0d0e12">
+  <title>VozLab</title>
+  <link rel="icon" type="image/png" href="/novo/icon.png">
+  <link rel="stylesheet" href="/novo/app.css">
+  <link rel="stylesheet" href="/novo/app-functional.css">
+  <link rel="stylesheet" href="/novo/texto-longo.css">
+  <script src="/novo/texto-longo.js" defer></script>
+  <script src="/novo/importar-vozes.js" defer></script>
+  <script src="/novo/app.js" defer></script>
+  <script src="/novo/omnivoice-painel.js" defer></script>
+</head>
+<body>
+  <div class="app" id="app">
+    <aside class="rail">
+      <button id="rail-toggle" class="rail-toggle" type="button" aria-label="Expandir menu" aria-expanded="false" title="Expandir menu">☰</button>
+      <a class="brand" href="/" aria-label="VozLab"><span class="brand-icon">◉</span><span class="brand-text">Voz<span>Lab</span></span></a>
+      <nav class="nav" aria-label="Navegação principal">
+        <button type="button" class="nav-item active" data-view="generate" aria-current="page">◉ <span>Generate</span></button>
+        <button type="button" class="nav-item" data-view="voices">◎ <span>Voices</span></button>
+        <button type="button" class="nav-item nav-item-omnivoice" data-view="omnivoice">🌍 <span>OmniVoice</span></button>
+        <button type="button" class="nav-item" data-view="importar">⇪ <span>Importar vozes</span></button>
+        <button type="button" class="nav-item" data-view="models">◈ <span>Models</span></button>
+        <button type="button" class="nav-item" data-view="settings">⚙ <span>Settings</span></button>
+        <button type="button" class="nav-item" data-view="guia">📖 <span>Guia</span></button>
+      </nav>
+      <div class="rail-bottom"><span id="connection-dot" class="connection-dot"></span><span id="connection-label">Verificando servidor…</span></div>
+    </aside>
+    <div class="shell">
+      <header class="topbar">
+        <div><div class="eyebrow">VozLab</div><strong id="page-title">Generate</strong></div>
+        <div class="top-actions"><button id="retry-data" class="retry-button" type="button" hidden>Tentar novamente</button></div>
+      </header>
+      <main id="page" class="page" tabindex="-1">
+        <section id="view-generate" class="view" aria-labelledby="generate-title">
+          <div class="workspace">
+            <aside class="panel voice-panel" aria-labelledby="voice-panel-title">
+              <div class="panel-header voice-heading"><div><span class="step">Escolher e ouvir</span><h2 id="voice-panel-title">Vozes</h2></div><button id="filters-toggle" class="icon-button" type="button" aria-label="Mostrar ou ocultar filtros" aria-expanded="true" aria-controls="voice-filters" title="Filtros de vozes">⚙</button></div>
+              <label class="field-label" for="voice-search">Buscar voz</label>
+              <input id="voice-search" class="field" type="search" placeholder="Nome, idioma ou descrição" autocomplete="off">
+              <div id="voice-filters" class="voice-filters">
+                <div><label class="field-label" for="filter-language">Idioma</label><select id="filter-language" class="field"><option value="">Todos</option></select></div>
+                <div><label class="field-label" for="filter-gender">Voz</label><select id="filter-gender" class="field"><option value="">Todas</option><option value="FEMALE">Feminina</option><option value="MALE">Masculina</option></select></div>
+                <div><label class="field-label" for="filter-source">Fonte</label><select id="filter-source" class="field"><option value="">Todas</option></select></div>
+              </div>
+              <p id="profile-count" class="count" role="status">Carregando…</p>
+              <div id="voice-options" class="voice-options" role="listbox" aria-label="Vozes disponíveis"></div>
+              <div id="voice-selected" class="voice-detail" hidden>
+                <span class="step">Voz selecionada</span>
+                <strong id="selected-name" class="selected-name"></strong><button id="selected-fav" type="button" class="fav-toggle" hidden></button>
+                <div id="selected-meta" class="voice-tags"></div>
+                <p id="selected-description" class="secondary"></p>
+                <p id="selected-extra" class="field-help"></p>
+                <button id="preview-voice" class="secondary-button" type="button">▶ Ouvir amostra</button>
+                <audio id="reference-player" class="audio-player" controls hidden preload="none"></audio>
+                <p id="preview-status" class="field-help" role="status"></p>
+              </div>
+            </aside>
+            <article class="panel composer-panel">
+              <div class="composer-heading"><span class="eyebrow">Estúdio de voz</span><h1 id="generate-title">Seu texto</h1><p id="composer-voice">Selecione uma voz na coluna à esquerda.</p></div>
+              <label class="field-label" for="gen-text">Texto para a voz ler</label>
+              <textarea id="gen-text" class="field textarea" placeholder="Escreva aqui o texto que a voz vai falar." aria-describedby="gen-count"></textarea>
+              <p id="gen-count" class="gen-count" aria-live="polite">0 / 50.000 caracteres</p>
+              <div class="settings-row">
+                <div><label class="field-label" for="gen-language">Idioma do texto</label><select id="gen-language" class="field"><option value="pt">Português</option><option value="en">Inglês</option><option value="ja">Japonês</option><option value="fr">Francês</option><option value="es">Espanhol</option><option value="de">Alemão</option><option value="it">Italiano</option><option value="auto">Idioma da voz</option></select></div>
+                <div><label class="field-label" for="gen-model">Modelo</label><select id="gen-model" class="field"><option value="qwen:1.7B">Qwen3-TTS 1.7B</option><option value="qwen:0.6B">Qwen3-TTS 0.6B</option><option value="f5_tts">F5-TTS</option><option value="luxtts">LuxTTS</option><option value="chatterbox">Chatterbox</option><option value="chatterbox_turbo">Chatterbox Turbo</option><option value="kokoro">Kokoro</option><option value="qwen_custom_voice:1.7B">Qwen Custom Voice 1.7B</option><option value="qwen_custom_voice:0.6B">Qwen Custom Voice 0.6B</option><option value="omnivoice">OmniVoice 0.6B</option></select></div>
+              </div>
+              <div class="placa-linha">
+                <span id="placa-agora" class="field-help" role="status" aria-live="polite">Na placa de vídeo: verificando…</span>
+                <button id="placa-carregar" class="secondary-button" type="button" title="Tira da placa o modelo que estiver lá e carrega o escolhido agora; assim a geração já começa direto">Carregar na placa agora</button>
+              </div>
+              <p id="placa-download" class="field-help placa-download" hidden></p>
+              <div id="model-warning" class="model-warning" role="note" hidden></div>
+              <div id="ov-gerar-box" class="ov-gerar-box" hidden>
+                <p id="ov-gerar-servico" class="field-help" role="status" aria-live="polite"></p>
+                <button id="ov-gerar-ligar" class="secondary-button" type="button" hidden>Ligar o OmniVoice</button>
+                <details id="ov-gerar-ajustes" class="ov-gerar-ajustes">
+                  <summary class="field-label">Ajustes do OmniVoice <span id="ov-gerar-resumo" class="field-help"></span></summary>
+                  <label class="field-label" for="ov-gerar-passos">Passos de difusão: <strong id="ov-gerar-passos-val">16</strong></label>
+                  <input id="ov-gerar-passos" type="range" min="8" max="64" step="2" value="16">
+                  <p class="field-help">Mais passos: som mais polido, porém mais lento. 16 é o equilíbrio; 8 serve para rascunho.</p>
+                  <label class="field-label" for="ov-gerar-cfg">CFG (o quanto segue a voz de referência): <strong id="ov-gerar-cfg-val">2.0</strong></label>
+                  <input id="ov-gerar-cfg" type="range" min="1.0" max="3.5" step="0.1" value="2.0">
+                  <p class="field-help">Mais alto: mais preso à voz e ao texto; pode soar tenso. Padrão 2,0.</p>
+                  <button id="ov-gerar-padrao" class="secondary-button" type="button">Voltar ao padrão</button>
+                </details>
+                <p class="field-help">O OmniVoice roda num programa à parte (o serviço dele). A 1ª geração depois de um tempo parado carrega o modelo (~15 s). Funciona também com texto longo (blocos, pausas, retomar e modo qualidade).</p>
+              </div>
+              <fieldset class="pause-presets" aria-describedby="pause-help">
+                <legend class="field-label">Pausas entre frases (texto longo)</legend>
+                <div class="pause-options" role="radiogroup">
+                  <label><input type="radio" name="pause-preset" value="curtas"><span>Curtas<small>90 · 180 · 450 ms</small></span></label>
+                  <label><input type="radio" name="pause-preset" value="padrao" checked><span>Padrão<small>140 · 300 · 775 ms</small></span></label>
+                  <label><input type="radio" name="pause-preset" value="longas"><span>Longas<small>160 · 350 · 900 ms</small></span></label>
+                </div>
+                <p id="pause-help" class="field-help">Vírgula · ponto · parágrafo. Vale para textos com 2 ou mais blocos; não muda a voz, só o tempo entre os blocos.</p>
+              </fieldset>
+              <details id="quality-options" class="quality-options">
+                <summary><span class="field-label">Modo qualidade (texto longo)</span><span id="quality-summary" class="quality-summary">desligado</span></summary>
+                <div class="quality-grid">
+                  <label class="q-toggle" title="O Whisper ouve cada bloco logo depois de gerado e marca 🎧 os suspeitos na lista de blocos. Não troca nada sozinho."><input type="checkbox" id="q-revisar"><span>Revisar blocos<small>O Whisper ouve e marca suspeitos · +9 a 18% de tempo</small></span></label>
+                  <label class="q-toggle" title="Bloco reprovado pelo Whisper é gerado de novo com outra semente, até 2 vezes. Fica sempre a melhor versão, nunca uma pior."><input type="checkbox" id="q-refazer"><span>Refazer sozinho<small>Até 2 novas tentativas · fica a melhor</small></span></label>
+                  <label class="q-toggle" title="Voz com sotaque (ex.: voz francesa lendo português) engana o Whisper. Com esta chave ele não refaz nada e só marca o que foge muito do resto."><input type="checkbox" id="q-sotaque"><span>Voz com sotaque<small>Só marca, nunca refaz</small></span></label>
+                  <label class="q-toggle" title="Compressor suave no áudio final montado. Dá para comparar antes e depois em Remontar o áudio final."><input type="checkbox" id="q-nivelador"><span>Nivelar volume<small>Abaixa os trechos altos demais</small></span></label>
+                </div>
+                <p id="quality-hint" class="field-help quality-hint" hidden></p>
+              </details>
+              <div class="composer-footer"><span id="generation-status" role="status" aria-live="polite">Selecione uma voz para começar.</span><button id="generate-button" class="primary" type="button" disabled>✨ Gerar áudio</button></div>
+              <p id="gpu-aviso-generate" class="field-help gpu-aviso" role="status" aria-live="polite" hidden></p>
+              <div id="generation-result" class="generation-result" hidden><strong>Áudio pronto</strong><audio id="result-player" class="audio-player" controls preload="none"></audio><a id="download-wav" class="small-link" href="#">Baixar WAV</a><label class="mp3-toggle" title="Ligado: todo áudio baixado vem também em .mp3, ao lado do .wav"><input type="checkbox" class="mp3-junto"> MP3 junto</label></div>
+              <section id="long-job" class="long-job" hidden aria-labelledby="lj-title">
+                <div class="lj-head"><div><span class="step">Texto longo · geração por blocos</span><h2 id="lj-title">Trabalho em blocos</h2></div><span id="lj-status" class="lj-status" role="status">Carregando…</span><button id="lj-close" class="icon-button" type="button" aria-label="Fechar painel do trabalho" title="Fechar painel">✕</button></div>
+                <p id="lj-loading" class="field-help">Carregando o trabalho…</p>
+                <div id="lj-body" hidden>
+                  <div id="lj-bar" class="lj-bar" role="progressbar" aria-label="Progresso da geração" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="lj-bar-fill" class="lj-bar-fill"></div></div>
+                  <p id="lj-progress-text" class="lj-progress-text" aria-live="polite"></p>
+                  <p id="lj-note" class="lj-note" hidden role="status"></p>
+                  <div class="lj-actions">
+                    <div id="lj-cancel" hidden><button id="lj-cancel-button" class="secondary-button" type="button">■ Cancelar</button><span class="field-help">Para depois do bloco atual. Os blocos prontos ficam salvos.</span></div>
+                    <div id="lj-resume" hidden><button id="lj-resume-button" class="primary" type="button">▶ Retomar</button><span class="field-help">Gera só os blocos que faltam.</span></div>
+                  </div>
+                  <details id="lj-reassemble" class="lj-section" hidden>
+                    <summary>Remontar o áudio final (sem regerar a voz)</summary>
+                    <form id="lj-reassemble-form" class="lj-form">
+                      <p class="field-help">Junta de novo os blocos já gravados com outras pausas e outro volume. Usa só o processador. Campos vazios usam o padrão.</p>
+                      <div class="lj-grid">
+                        <div><label class="field-label" for="lj-pause-oracao">Pausa na vírgula (ms)</label><input id="lj-pause-oracao" class="field" type="number" min="0" max="2000" step="10" placeholder="140"></div>
+                        <div><label class="field-label" for="lj-pause-frase">Pausa no ponto (ms)</label><input id="lj-pause-frase" class="field" type="number" min="0" max="3000" step="10" placeholder="300"></div>
+                        <div><label class="field-label" for="lj-pause-paragrafo">Pausa no parágrafo (ms)</label><input id="lj-pause-paragrafo" class="field" type="number" min="0" max="5000" step="10" placeholder="775"></div>
+                        <div><label class="field-label" for="lj-lufs">Volume final (LUFS)</label><input id="lj-lufs" class="field" type="number" min="-30" max="-9" step="0.5" placeholder="-19"></div>
+                        <div><label class="field-label" for="lj-nivelador">Nivelar volume</label><select id="lj-nivelador" class="field"><option value="">Como está</option><option value="1">Ligado</option><option value="0">Desligado</option></select></div>
+                      </div>
+                      <p class="field-help">LUFS = unidade de volume percebido; −19 é o padrão escolhido, −16 é mais alto.</p>
+                      <div class="lj-form-footer"><button id="lj-reassemble-button" class="secondary-button" type="submit">Remontar áudio final</button><span id="lj-reassemble-status" class="field-help" role="status"></span></div>
+                    </form>
+                  </details>
+                  <details id="lj-blocks-section" class="lj-section" open>
+                    <summary>Blocos <span id="lj-blocks-count" class="field-help"></span></summary>
+                    <ol id="lj-blocks" class="lj-blocks"></ol>
+                  </details>
+                  <div id="lj-cleanup" class="lj-section lj-cleanup" hidden>
+                    <p id="lj-cleanup-size" class="field-help"></p>
+                    <button id="lj-cleanup-button" class="secondary-button danger-button" type="button">Limpar temporários deste trabalho</button>
+                    <p class="field-help">Apaga só os blocos. O áudio final continua no histórico, mas depois não dá mais para regerar blocos nem remontar.</p>
+                  </div>
+                </div>
+              </section>
+            </article>
+            <aside class="panel history-panel"><div class="panel-header"><div><span class="step">Seu trabalho</span><h2>Histórico de gerações</h2><label class="mp3-toggle" title="Ligado: todo áudio baixado vem também em .mp3, ao lado do .wav"><input type="checkbox" class="mp3-junto"> MP3 junto</label></div><button id="history-clear-all" class="secondary-button danger-button history-clear-all" type="button" title="Apaga do disco todos os áudios do histórico" hidden>🗑 Excluir todas</button></div><div id="history-list" class="history-list" aria-live="polite"><p class="secondary">Carregando histórico…</p></div></aside>
+          </div>
+        </section>
+        <section id="view-voices" class="view" hidden aria-labelledby="voices-title">
+          <div class="intro library-intro"><span class="eyebrow">Biblioteca de vozes</span><h1 id="voices-title">Encontre a voz certa</h1><p id="voices-count">Carregando vozes…</p></div>
+          <div class="library-layout">
+            <div class="panel library-browser">
+              <label class="field-label" for="library-search">Buscar por nome, idioma ou código original</label>
+              <input id="library-search" class="field" type="search" placeholder="Ex.: Sakura, francês ou EDE458" autocomplete="off">
+              <div class="library-filters">
+                <div><label class="field-label" for="library-language">Idioma</label><select id="library-language" class="field"><option value="">Todos</option></select></div>
+                <div><label class="field-label" for="library-gender">Voz</label><select id="library-gender" class="field"><option value="">Todas</option><option value="FEMALE">Feminina</option><option value="MALE">Masculina</option></select></div>
+                <div><label class="field-label" for="library-source">Fonte</label><select id="library-source" class="field"><option value="">Todas</option></select></div>
+              </div>
+              <p id="library-count" class="count" role="status">Carregando biblioteca…</p>
+              <div id="library-list" class="library-list" role="listbox" aria-label="Catálogo de vozes"></div>
+              <button id="library-more" type="button" class="secondary-button library-more" hidden>Mostrar mais vozes</button>
+            </div>
+            <aside id="library-detail" class="panel library-detail" aria-label="Detalhes da voz">
+              <span class="step">Voz selecionada</span>
+              <div class="titulo-com-estrela"><h2 id="library-name">Selecione uma voz</h2><button id="library-fav" type="button" class="fav-toggle" hidden></button></div>
+              <div id="library-meta" class="voice-tags"></div>
+              <p id="library-description" class="secondary">Escolha uma voz na lista para ver a origem, o modelo e ouvir a amostra.</p>
+              <p id="library-original" class="field-help"></p>
+              <p id="library-engine" class="field-help"></p>
+              <button id="library-preview" type="button" class="secondary-button" disabled>▶ Ouvir amostra</button>
+              <audio id="library-player" class="audio-player" controls hidden preload="none"></audio>
+              <p id="library-preview-status" class="field-help" role="status"></p>
+              <button id="library-use" type="button" class="primary library-use" disabled>Usar no painel principal →</button>
+              <button id="library-use-ov" type="button" class="secondary-button library-use" disabled title="Abre a aba OmniVoice com esta voz já escolhida">Usar no OmniVoice →</button>
+            </aside>
+          </div>
+        </section>
+        <section id="view-omnivoice" class="view ovp" hidden aria-labelledby="omnivoice-title">
+          <div class="ovp-topo">
+            <div class="ovp-topo-titulo">
+              <span class="step">Modelo de voz em mais de 600 idiomas</span>
+              <h1 id="omnivoice-title">OmniVoice</h1>
+              <p class="secondary">Clona uma voz a partir de um áudio ou cria uma voz nova por descrição. Roda num programa à parte (o serviço OmniVoice), usando a mesma placa de vídeo do VozLab, um de cada vez.</p>
+            </div>
+            <div class="ovp-topo-acoes">
+              <div id="ov-badge-status" class="ov-status-badge badge-offline">
+                <span class="ov-status-dot"></span>
+                <span id="ov-status-text">Verificando serviço…</span>
+              </div>
+              <span id="ov-vram-text" class="ov-vram-badge" title="Memória da placa de vídeo usada pelo OmniVoice">Placa: 0 MB</span>
+              <button id="ov-btn-carregar" class="secondary-button ov-btn-sm" type="button" title="Carrega o OmniVoice na placa agora (o modelo que estiver lá sai); a 1ª geração já começa direto" hidden>Carregar na placa</button>
+              <button id="ov-btn-unload" class="secondary-button ov-btn-sm" type="button" title="Tira o modelo da placa de vídeo (ela volta a zero). Ele também sai sozinho depois de 10 minutos parado." hidden>Liberar placa</button>
+              <button id="ov-btn-start" class="secondary-button ov-btn-sm" type="button" title="Liga o serviço OmniVoice em segundo plano" hidden>Ligar o OmniVoice</button>
+            </div>
+          </div>
+          <p id="gpu-aviso-ov" class="field-help gpu-aviso" role="status" aria-live="polite" hidden></p>
+
+          <div class="ovp-grade">
+            <!-- ============================ 1. VOZ ============================ -->
+            <section class="panel ovp-coluna" aria-labelledby="ovp-voz-titulo">
+              <div class="ovp-cabeca"><span class="step">Passo 1</span><h2 id="ovp-voz-titulo">Voz</h2></div>
+              <div class="ovp-abas" role="tablist" aria-label="Como fazer a voz">
+                <button type="button" class="ovp-aba" role="tab" data-modo="clone" aria-selected="true">Clonar voz</button>
+                <button type="button" class="ovp-aba" role="tab" data-modo="design" aria-selected="false">Criar voz</button>
+                <button type="button" class="ovp-aba" role="tab" data-modo="auto" aria-selected="false">Voz automática</button>
+              </div>
+
+              <div id="ovp-modo-clone" class="ovp-modo">
+                <div class="ovp-origens" role="radiogroup" aria-label="De onde vem a voz">
+                  <label><input type="radio" name="ovp-origem" value="biblioteca" checked> Biblioteca</label>
+                  <label><input type="radio" name="ovp-origem" value="catalogo"> Catálogo</label>
+                  <label><input type="radio" name="ovp-origem" value="arquivo"> Meu arquivo</label>
+                </div>
+
+                <div id="ovp-origem-biblioteca" class="ovp-origem">
+                  <div class="ovp-linha">
+                    <input id="ovp-busca" class="field" type="search" placeholder="Buscar voz por nome…" autocomplete="off" aria-label="Buscar voz">
+                    <select id="ovp-filtro-idioma" class="field" aria-label="Filtrar por idioma"><option value="">Todos os idiomas</option></select>
+                  </div>
+                  <p id="ovp-contagem" class="field-help">Carregando vozes…</p>
+                  <div id="ovp-lista" class="ovp-lista" role="listbox" aria-label="Vozes da biblioteca"></div>
+                  <button id="ovp-mais" class="secondary-button ovp-mais" type="button" hidden>Mostrar mais vozes</button>
+                </div>
+
+                <div id="ovp-origem-catalogo" class="ovp-origem" hidden>
+                  <p class="field-help">Vozes da pasta <code>catalogo_vozes</code> do OmniVoice (só leitura).</p>
+                  <div id="ovp-catalogo" class="ovp-lista" role="listbox" aria-label="Vozes do catálogo"></div>
+                </div>
+
+                <div id="ovp-origem-arquivo" class="ovp-origem" hidden>
+                  <label class="field-label" for="ovp-arquivo">Áudio de referência (WAV, FLAC ou OGG; 3 a 10 s é o ideal)</label>
+                  <input id="ovp-arquivo" class="field" type="file" accept=".wav,.flac,.ogg,audio/wav,audio/flac,audio/ogg">
+                  <p id="ovp-arquivo-status" class="field-help">O arquivo não entra na biblioteca: fica guardado só para o OmniVoice.</p>
+                </div>
+
+                <div id="ovp-escolhida" class="ovp-escolhida" hidden>
+                  <span class="step">Voz escolhida</span>
+                  <strong id="ovp-escolhida-nome"></strong>
+                  <div id="ovp-escolhida-tags" class="voice-tags"></div>
+                  <button id="ovp-ouvir" class="secondary-button" type="button">▶ Ouvir a voz</button>
+                  <audio id="ov-ref-player" class="audio-player" controls hidden preload="none"></audio>
+                  <label class="field-label" for="ovp-ref-texto">Texto da referência (opcional)</label>
+                  <textarea id="ovp-ref-texto" class="field ovp-ref-texto" rows="2" placeholder="O que é falado no áudio da voz. Vazio: o OmniVoice transcreve sozinho (usa um pouco mais da placa na 1ª vez)."></textarea>
+                </div>
+              </div>
+
+              <div id="ovp-modo-design" class="ovp-modo" hidden>
+                <p class="field-help">Descreva a voz. Deixe em <strong>Qualquer</strong> o que não importar.</p>
+                <div class="ovp-atalhos">
+                  <button type="button" class="ovp-chip" data-genero="female" data-idade="young adult" data-tom="moderate pitch" data-estilo="">Feminina jovem</button>
+                  <button type="button" class="ovp-chip" data-genero="male" data-idade="middle-aged" data-tom="low pitch" data-estilo="">Masculina grave</button>
+                  <button type="button" class="ovp-chip" data-genero="female" data-idade="young adult" data-tom="moderate pitch" data-estilo="whisper">Sussurro</button>
+                </div>
+                <div class="ovp-campos">
+                  <div><label class="field-label" for="ovp-genero">Gênero</label>
+                    <select id="ovp-genero" class="field"><option value="">Qualquer</option><option value="female">Feminino</option><option value="male">Masculino</option></select></div>
+                  <div><label class="field-label" for="ovp-idade">Idade</label>
+                    <select id="ovp-idade" class="field"><option value="">Qualquer</option><option value="child">Criança</option><option value="teenager">Adolescente</option><option value="young adult">Jovem adulto</option><option value="middle-aged">Meia-idade</option><option value="elderly">Idoso</option></select></div>
+                  <div><label class="field-label" for="ovp-tom">Tom (altura da voz)</label>
+                    <select id="ovp-tom" class="field"><option value="">Qualquer</option><option value="very low pitch">Muito grave</option><option value="low pitch">Grave</option><option value="moderate pitch">Médio</option><option value="high pitch">Agudo</option><option value="very high pitch">Muito agudo</option></select></div>
+                  <div><label class="field-label" for="ovp-estilo">Estilo</label>
+                    <select id="ovp-estilo" class="field"><option value="">Normal</option><option value="whisper">Sussurro</option></select></div>
+                  <div class="ovp-campo-largo"><label class="field-label" for="ovp-sotaque">Sotaque (só funciona com fala em inglês)</label>
+                    <select id="ovp-sotaque" class="field"><option value="">Nenhum</option><option value="american accent">Americano</option><option value="british accent">Britânico</option><option value="australian accent">Australiano</option><option value="canadian accent">Canadense</option><option value="indian accent">Indiano</option><option value="portuguese accent">Português</option><option value="chinese accent">Chinês</option><option value="japanese accent">Japonês</option><option value="korean accent">Coreano</option><option value="russian accent">Russo</option></select></div>
+                </div>
+                <label class="field-label" for="ovp-instrucao">Descrição extra (opcional, em inglês, como o modelo entende)</label>
+                <input id="ovp-instrucao" class="field" type="text" placeholder="Ex.: calm, warm" autocomplete="off">
+              </div>
+
+              <div id="ovp-modo-auto" class="ovp-modo" hidden>
+                <p class="field-help">A <strong>voz automática</strong> é a voz neutra do próprio OmniVoice: não precisa de áudio nem de descrição. Bom para testar um texto rápido.</p>
+              </div>
+            </section>
+
+            <!-- ============================ 2. TEXTO ============================ -->
+            <section class="panel ovp-coluna" aria-labelledby="ovp-texto-titulo">
+              <div class="ovp-cabeca ovp-cabeca-linha">
+                <div><span class="step">Passo 2</span><h2 id="ovp-texto-titulo">Texto</h2></div>
+                <div class="ovp-idioma"><label class="field-label" for="ovp-idioma">Idioma do texto</label>
+                  <select id="ovp-idioma" class="field"></select></div>
+              </div>
+              <div class="ovp-atalhos" aria-label="Textos de exemplo">
+                <button type="button" class="ovp-exemplo" data-texto="Olá! Seja muito bem-vindo ao VozLab com o OmniVoice.">Frase curta</button>
+                <button type="button" class="ovp-exemplo" data-texto="O farol da ilha acende todas as noites às sete horas. Os pescadores voltam devagar, contando histórias sobre o vento e o mar.">Duas frases</button>
+              </div>
+              <label class="field-label" for="ovp-texto">Escreva ou cole o texto que a voz vai falar</label>
+              <textarea id="ovp-texto" class="field textarea ovp-textarea" placeholder="Digite aqui o texto…"></textarea>
+              <p id="ovp-contador" class="count">0 / 50.000 caracteres</p>
+
+              <fieldset class="ovp-pausas">
+                <legend class="field-label">Pausas entre frases</legend>
+                <div class="ovp-origens">
+                  <label><input type="radio" name="ovp-pausa" value="curtas"> Curtas</label>
+                  <label><input type="radio" name="ovp-pausa" value="padrao" checked> Padrão</label>
+                  <label><input type="radio" name="ovp-pausa" value="longas"> Longas</label>
+                  <label><input type="radio" name="ovp-pausa" value="modelo"> Do modelo</label>
+                </div>
+                <p class="field-help">As mesmas pausas da tela Generate, que valem para <strong>todos os modelos</strong>, inclusive o OmniVoice. O VozLab divide o texto em blocos, põe a pausa escolhida entre eles e iguala o volume (−19 LUFS). <strong>Do modelo:</strong> o texto vai inteiro e o OmniVoice decide as pausas.</p>
+              </fieldset>
+
+              <details id="ovp-ajustes" class="ovp-ajustes">
+                <summary class="field-label">Ajustes do modelo <span id="ovp-ajustes-resumo" class="field-help">(padrão)</span></summary>
+                <p class="field-help">Já vêm no valor recomendado. Mexa só se souber o que quer mudar.</p>
+                <div class="ovp-ajuste">
+                  <label class="field-label" for="ovp-passos">Passos de difusão: <strong id="ovp-passos-v">16</strong></label>
+                  <div class="ovp-atalhos"><button type="button" class="ovp-pilula" data-passos="8">Rápido (8)</button><button type="button" class="ovp-pilula" data-passos="16">Equilibrado (16)</button><button type="button" class="ovp-pilula" data-passos="32">Estúdio (32)</button></div>
+                  <input id="ovp-passos" type="range" min="4" max="64" step="1" value="16">
+                  <p class="field-help">Mais passos: som mais polido e mais lento.</p>
+                </div>
+                <div class="ovp-ajuste">
+                  <label class="field-label" for="ovp-cfg">CFG (o quanto segue a voz e o texto): <strong id="ovp-cfg-v">2.0</strong></label>
+                  <input id="ovp-cfg" type="range" min="0" max="4" step="0.1" value="2.0">
+                  <p class="field-help">Mais alto: mais preso à referência; pode soar tenso. Padrão 2,0.</p>
+                </div>
+                <div class="ovp-ajuste">
+                  <label class="field-label" for="ovp-velocidade">Velocidade: <strong id="ovp-velocidade-v">1.00x</strong></label>
+                  <input id="ovp-velocidade" type="range" min="0.5" max="1.5" step="0.05" value="1.0">
+                </div>
+                <div class="ovp-campos">
+                  <div><label class="field-label" for="ovp-duracao">Duração (s, opcional)</label>
+                    <input id="ovp-duracao" class="field" type="number" min="0.5" max="600" step="0.5" placeholder="automática">
+                    <p class="field-help">Força o áudio a durar isso (ignora a velocidade).</p></div>
+                  <div><label class="field-label" for="ovp-semente">Semente (opcional)</label>
+                    <input id="ovp-semente" class="field" type="number" min="0" step="1" placeholder="aleatória">
+                    <p class="field-help">Mesmo número + mesmo texto = mesmo áudio.</p></div>
+                </div>
+                <label class="ovp-check"><input id="ovp-ruido" type="checkbox" checked> Reduzir ruído de fundo</label>
+                <label class="ovp-check"><input id="ovp-prepara" type="checkbox" checked> Preparar a referência (tira silêncios dela)</label>
+                <label class="ovp-check"><input id="ovp-silencios" type="checkbox" checked> Tirar silêncios longos do resultado</label>
+                <details class="ovp-avancado">
+                  <summary class="field-label">Avançado (ajustes internos do modelo)</summary>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-tshift">t_shift (onde o modelo gasta os passos): <strong id="ovp-tshift-v">0.10</strong></label>
+                    <input id="ovp-tshift" type="range" min="0.01" max="1" step="0.01" value="0.1"></div>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-tpos">Temperatura da posição: <strong id="ovp-tpos-v">5.0</strong></label>
+                    <input id="ovp-tpos" type="range" min="0" max="20" step="0.5" value="5"></div>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-tsom">Temperatura do som (0 = mais estável): <strong id="ovp-tsom-v">0.00</strong></label>
+                    <input id="ovp-tsom" type="range" min="0" max="2" step="0.05" value="0"></div>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-camada">Penalidade por camada: <strong id="ovp-camada-v">5.0</strong></label>
+                    <input id="ovp-camada" type="range" min="0" max="10" step="0.5" value="5"></div>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-divtam">Divisão interna (pausas "Do modelo"): pedaços de <strong id="ovp-divtam-v">15</strong> s</label>
+                    <input id="ovp-divtam" type="range" min="5" max="60" step="1" value="15"></div>
+                  <div class="ovp-ajuste"><label class="field-label" for="ovp-divlim">… a partir de <strong id="ovp-divlim-v">30</strong> s de áudio</label>
+                    <input id="ovp-divlim" type="range" min="10" max="300" step="5" value="30"></div>
+                </details>
+                <button id="ovp-padrao" class="secondary-button" type="button">Voltar tudo ao padrão</button>
+              </details>
+
+              <div class="composer-footer ovp-rodape">
+                <span id="ovp-situacao" role="status" aria-live="polite">Escolha a voz e escreva o texto.</span>
+                <div class="ovp-botoes">
+                  <button id="ovp-cancelar" class="secondary-button" type="button" hidden>Cancelar</button>
+                  <button id="ovp-gerar" class="primary" type="button">✨ Gerar com o OmniVoice</button>
+                </div>
+              </div>
+              <div id="ovp-resultado" class="ovp-resultado" hidden>
+                <strong>Áudio pronto</strong>
+                <audio id="ov-result-player" class="audio-player" controls preload="none"></audio>
+                <p id="ovp-resultado-info" class="field-help"></p>
+                <a id="ovp-baixar" class="small-link" href="#" download>Baixar WAV</a><label class="mp3-toggle" title="Ligado: todo áudio baixado vem também em .mp3, ao lado do .wav"><input type="checkbox" class="mp3-junto"> MP3 junto</label>
+              </div>
+            </section>
+
+            <!-- ============================ 3. SESSÃO ============================ -->
+            <aside class="panel ovp-coluna ovp-sessao" aria-labelledby="ovp-sessao-titulo">
+              <div class="ovp-cabeca"><span class="step">Passo 3</span><h2 id="ovp-sessao-titulo">Nesta sessão</h2></div>
+              <p class="field-help">Os áudios gerados aqui ficam nesta lista até fechar o VozLab. Baixe os que quiser guardar.</p>
+              <div id="ovp-historico" class="ovp-historico"><p class="field-help">Nenhum áudio gerado ainda.</p></div>
+            </aside>
+          </div>
+        </section>
+        <section id="view-importar" class="view" hidden aria-labelledby="importar-title">
+          <div class="intro"><span class="eyebrow">Biblioteca de vozes</span><h1 id="importar-title">Importar pacote de vozes</h1><p>Escolha um arquivo .zip com várias vozes. Primeiro o VozLab mostra o que encontrou; nada entra na biblioteca antes de você confirmar.</p></div>
+          <div class="panel info-panel">
+            <form id="imp-form" class="imp-form">
+              <div><label class="field-label" for="imp-file">Pacote (.zip)</label><input id="imp-file" class="field" type="file" accept=".zip,application/zip" required></div>
+              <div><label class="field-label" for="imp-lang">Idioma, quando não der para descobrir pelo nome</label><select id="imp-lang" class="field"><option value="pt">Português</option><option value="en">Inglês</option><option value="es">Espanhol</option><option value="fr">Francês</option><option value="de">Alemão</option><option value="it">Italiano</option><option value="ru">Russo</option><option value="no">Norueguês</option><option value="ja">Japonês</option></select></div>
+              <button id="imp-read" class="primary" type="submit">Ler pacote</button>
+            </form>
+            <details class="imp-help"><summary>Que tipo de pacote funciona?</summary>
+              <ul>
+                <li><strong>Áudios soltos</strong> (.wav, .mp3, .flac, .ogg, .m4a, .opus): cada áudio vira uma voz com o nome do arquivo. Cada áudio precisa ter de 2 a 30 segundos.</li>
+                <li>Um <strong>.txt com o mesmo nome</strong> do áudio traz a frase falada e deixa o clone mais fiel.</li>
+                <li>Pastas ou nomes com o idioma (<code>pt</code>, <code>[EN]</code>, <code>frances</code>) e o gênero (<code>feminino</code>, <code>male</code>) são reconhecidos.</li>
+                <li><strong>Vozes exportadas</strong> pelo próprio programa (zip com manifest.json) também funcionam, soltas ou dentro do pacote.</li>
+                <li>Vozes com nome já existente ou importadas antes são <strong>puladas</strong>. Nenhuma voz existente é alterada.</li>
+              </ul>
+            </details>
+            <p id="imp-status" class="field-help" role="status" aria-live="polite"></p>
+            <progress id="imp-progress" class="imp-progress" max="100" value="0" hidden></progress>
+          </div>
+          <div id="imp-preview" class="panel info-panel" hidden>
+            <div class="info-head"><h2 id="imp-summary">Vozes encontradas</h2><div class="imp-bulk"><button id="imp-all" class="secondary-button" type="button">Marcar todas as novas</button><button id="imp-none" class="secondary-button" type="button">Desmarcar todas</button></div></div>
+            <ul id="imp-list" class="imp-list"></ul>
+            <div class="imp-footer"><button id="imp-go" class="primary" type="button" disabled>Importar</button><button id="imp-cancel" class="secondary-button" type="button">Cancelar</button></div>
+          </div>
+        </section>
+        <section id="view-models" class="view" hidden aria-labelledby="models-title">
+          <div class="intro"><span class="eyebrow">GPU e inferência</span><h1 id="models-title">Models</h1><p id="vram-label">Verificando memória alocada pelo VozLab…</p><p id="placa-perfil" class="field-help" role="status"></p></div>
+          <div class="panel info-panel">
+            <div class="info-head"><h2>Modelos de voz</h2><button id="models-refresh" class="secondary-button" type="button">↻ Atualizar</button></div>
+            <p class="field-help">"Na memória" = carregado na placa de vídeo agora. Tirar da memória libera VRAM (memória da placa de vídeo) sem apagar nada do disco. O modelo volta a carregar sozinho na próxima geração.</p>
+            <p id="models-status" class="field-help" role="status">Carregando modelos…</p>
+            <ul id="models-list" class="info-list"></ul>
+            <p class="field-help">"Baixar" traz o modelo do Hugging Face para a biblioteca de modelos e depois o carrega na placa. O download só acrescenta: nenhum modelo já instalado é apagado ou trocado. Apagar modelos não é feito por esta tela.</p>
+          </div>
+        </section>
+        <section id="view-settings" class="view" hidden aria-labelledby="settings-title">
+          <div class="intro"><span class="eyebrow">Ambiente</span><h1 id="settings-title">Settings</h1><p>Informações lidas do servidor agora; nada aqui é texto fixo.</p></div>
+          <div class="info-grid">
+            <div class="panel info-panel">
+              <div class="info-head"><h2>Servidor</h2><button id="settings-refresh" class="secondary-button" type="button">↻ Atualizar</button></div>
+              <dl id="settings-server" class="info-dl"><dt>Estado</dt><dd>Verificando…</dd></dl>
+            </div>
+            <div class="panel info-panel">
+              <h2>Disco e pastas</h2>
+              <p id="settings-disk" class="field-help">Verificando…</p>
+              <p id="settings-jobs" class="field-help"></p>
+              <p id="settings-cache" class="field-help"></p>
+              <p class="field-help">Os temporários de cada trabalho em blocos são limpos pelo botão "Limpar temporários" no painel do trabalho, na tela Generate.</p>
+            </div>
+            <div class="panel info-panel">
+              <h2>Painel OmniVoice</h2>
+              <p id="settings-omnivoice" class="field-help"></p>
+              <p class="field-help">O OmniVoice usa a mesma placa de vídeo do VozLab. Os dois se revezam sozinhos: um espera o outro terminar, e nenhuma geração é cortada. O OmniVoice libera a placa depois de 10 minutos parado.</p>
+              <button id="settings-omnivoice-toggle" class="secondary-button" type="button">Esconder painel OmniVoice</button>
+            </div>
+          </div>
+        </section>
+        <section id="view-guia" class="view guide" hidden aria-labelledby="guia-title">
+          <div class="intro"><span class="eyebrow">Como usar</span><h1 id="guia-title">Guia do VozLab</h1><p>O que cada tela e cada botão faz. Clique num assunto para abrir.</p></div>
+
+          <details class="panel guide-section" open>
+            <summary><h2>Primeiros passos</h2></summary>
+            <ol>
+              <li>Abra o <strong>VozLab.exe</strong>. A tela abre sozinha no navegador.</li>
+              <li>No pé do menu lateral, a bolinha <strong>verde</strong> quer dizer "Servidor conectado". Vermelha: o servidor não respondeu; use <strong>Tentar novamente</strong> ou feche e abra o VozLab.</li>
+              <li>O botão <strong>☰</strong> no topo do menu mostra ou esconde o nome de cada tela.</li>
+              <li>Para gerar uma voz: escolha a voz à esquerda, escreva o texto, confira idioma e modelo e clique em <strong>✨ Gerar áudio</strong> (ou <strong>Ctrl+Enter</strong> na caixa de texto).</li>
+            </ol>
+            <p>Tudo roda no seu computador. Nada é enviado para a internet.</p>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Generate: gerar uma voz</h2></summary>
+            <h3>Coluna Vozes</h3>
+            <ul>
+              <li><strong>Buscar voz</strong> procura por nome, idioma ou descrição. Os filtros <strong>Idioma</strong>, <strong>Voz</strong> (feminina ou masculina) e <strong>Fonte</strong> estreitam a lista.</li>
+              <li>Clique numa voz para selecioná-la. <strong>▶ Ouvir amostra</strong> toca a gravação de referência.</li>
+              <li><strong>☆ Estrela:</strong> marca a voz como favorita. As favoritas ficam no topo da lista ("★ Favoritas"), aqui, na tela Vozes e no OmniVoice. Clique de novo para desmarcar. Só muda a ordem; nada da voz é alterado.</li>
+              <li>Ao escolher uma voz, o <strong>Modelo</strong> muda para o modelo padrão dela. Você pode trocar.</li>
+              <li><strong>OmniVoice 0.6B</strong> no Modelo: gera com o OmniVoice usando a voz escolhida da biblioteca, e o áudio entra no histórico como os outros. Se o serviço dele estiver desligado, ele liga sozinho (ou use "Ligar o OmniVoice"). Os <strong>Ajustes do OmniVoice</strong> (passos e CFG) ficam recolhidos logo abaixo. Vozes com amostra de mais de 12 s usam uma cópia cortada de ~10 s; a original não muda.</li>
+            </ul>
+            <h3>Seu texto</h3>
+            <ul>
+              <li>Até <strong>50.000 caracteres</strong> por geração. O contador fica embaixo da caixa.</li>
+              <li><strong>Idioma do texto:</strong> o idioma em que o texto está escrito. "Idioma da voz" usa o idioma cadastrado na voz.</li>
+              <li><strong>Modelo:</strong> o motor que fala o texto. Se aparecer uma linha <span class="guide-warn">⚠ amarela</span> embaixo, é um problema que já foi medido em testes com aquela combinação de modelo e idioma. Passe o mouse em cima para ver o detalhe. É só um aviso: dá para gerar mesmo assim.</li>
+              <li><strong>Na placa de vídeo:</strong> a linha embaixo do Modelo mostra qual modelo está carregado agora. <strong>Carregar na placa agora</strong> tira o que estiver lá (inclusive o OmniVoice) e carrega o modelo escolhido, para a geração começar direto. Se o modelo ainda não estiver no PC, ele é baixado antes, e um aviso mostra o tamanho.</li>
+            </ul>
+            <h3>Pausas entre frases (texto longo)</h3>
+            <p><strong>Curtas</strong>, <strong>Padrão</strong> ou <strong>Longas</strong>: o tempo de silêncio na vírgula, no ponto e no parágrafo. Vale para textos com 2 ou mais blocos. Não muda a voz, só o tempo entre os blocos.</p>
+            <h3>Modo qualidade (texto longo)</h3>
+            <p>Painel recolhido, tudo desligado por padrão. As escolhas ficam guardadas neste computador.</p>
+            <ul>
+              <li><strong>Revisar blocos:</strong> o Whisper (um programa que transcreve fala) ouve cada bloco logo depois de gerado e marca 🎧 os suspeitos. Não troca nada sozinho. Deixa a geração de 9% a 18% mais lenta.</li>
+              <li><strong>Refazer sozinho:</strong> só com a revisão ligada. Um bloco reprovado é gerado de novo até 2 vezes, e fica sempre a melhor versão.</li>
+              <li><strong>Voz com sotaque:</strong> para uma voz de um idioma lendo texto de outro (ex.: voz francesa lendo português). O sotaque engana o Whisper; com esta chave ele não refaz nada e só marca o que foge muito do resto. A tela sugere ligar quando os idiomas da voz e do texto são diferentes.</li>
+              <li><strong>Nivelar volume:</strong> deixa o volume do áudio final mais uniforme, abaixando os trechos que ficaram altos demais.</li>
+            </ul>
+            <h3>Histórico de gerações</h3>
+            <p>Coluna da direita. Cada áudio gerado fica ali para ouvir de novo ou baixar.</p>
+            <ul>
+              <li><strong>✕</strong> no canto de cada cartão: exclui aquela geração. O arquivo de áudio é <strong>apagado do disco</strong>, com as versões e os blocos de texto longo dela. Pede confirmação.</li>
+              <li><strong>🗑 Excluir todas</strong> no topo: apaga todas as gerações do histórico, não só as que aparecem na lista. Para confirmar, é preciso digitar EXCLUIR. O que estiver gerando no momento fica. Não dá para desfazer.</li>
+            </ul>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Texto longo: o trabalho em blocos</h2></summary>
+            <p>Textos grandes são divididos em <strong>blocos</strong> (trechos de até cerca de 220 caracteres, cortando de preferência no fim de uma frase). Cada bloco é gerado e gravado separado, e no fim todos são emendados num áudio só, com volume final de −19 LUFS (unidade de volume percebido). O painel <strong>Trabalho em blocos</strong> aparece embaixo do texto.</p>
+            <ul>
+              <li><strong>Barra de progresso:</strong> quantos blocos já ficaram prontos.</li>
+              <li><strong>■ Cancelar:</strong> para depois do bloco atual. Os blocos prontos ficam salvos.</li>
+              <li><strong>▶ Retomar:</strong> gera só os blocos que faltam. Funciona também depois de fechar e abrir o VozLab.</li>
+              <li><strong>Blocos:</strong> lista de todos os blocos. <strong>▶ Ouvir bloco</strong> toca só aquele trecho. <strong>↻ Regerar este bloco</strong> gera de novo só aquele bloco, com outra semente; o áudio anterior fica guardado. A marca 🎧 indica um bloco suspeito na revisão do Whisper.</li>
+              <li><strong>Remontar o áudio final (sem regerar a voz):</strong> junta de novo os blocos já gravados com outras pausas, outro volume ou o nivelador. Usa só o processador e leva segundos. Campos vazios usam o padrão.</li>
+              <li><strong>Limpar temporários deste trabalho:</strong> apaga os blocos para liberar espaço em disco, sempre com confirmação. O áudio final continua no histórico, mas depois não dá mais para regerar blocos nem remontar.</li>
+            </ul>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Voices: a biblioteca de vozes</h2></summary>
+            <ul>
+              <li>Mostra todas as vozes instaladas, com busca e os mesmos filtros da tela Generate.</li>
+              <li>Clique numa voz para ver os detalhes. <strong>▶ Ouvir amostra</strong> toca a referência.</li>
+              <li><strong>Usar na geração →</strong> leva a voz para a tela Generate, já selecionada.</li>
+              <li><strong>Mostrar mais vozes</strong> carrega o resto da lista, quando ela é grande.</li>
+            </ul>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>OmniVoice</h2></summary>
+            <p>O OmniVoice é um modelo de voz que roda num programa à parte (o serviço OmniVoice), ligado ao VozLab. Fala mais de 600 idiomas, clona uma voz a partir de um áudio e cria vozes novas por descrição. Ele também aparece no <strong>Modelo</strong> da tela Generate.</p>
+            <ul>
+              <li><strong>Ligar o OmniVoice:</strong> aparece quando o serviço está desligado. Ao gerar, ele também liga sozinho (~15 s).</li>
+              <li><strong>Liberar placa:</strong> tira o modelo da placa de vídeo (ela volta a zero). Se você esquecer, ele sai sozinho depois de 10 minutos parado.</li>
+              <li><strong>Carregar na placa:</strong> liga o serviço se preciso e já carrega o OmniVoice (~25 s), para a primeira geração começar direto. O modelo do VozLab que estiver na placa sai.</li>
+              <li><strong>Passo 1, Voz:</strong>
+                <ul>
+                  <li><strong>Clonar voz:</strong> escolha de onde vem a voz: <strong>Biblioteca</strong> (todas as vozes do VozLab, com busca e filtro por idioma), <strong>Catálogo</strong> (a pasta <code>catalogo_vozes</code> do OmniVoice) ou <strong>Meu arquivo</strong> (um áudio seu, enviado na hora; ele não entra na biblioteca). Áudios com mais de 12 s viram uma cópia de ~10 s; o original não muda. O <strong>texto da referência</strong> é opcional: vazio, o OmniVoice transcreve sozinho.</li>
+                  <li><strong>Criar voz:</strong> descreva gênero, idade, tom e estilo (o sotaque só funciona com fala em inglês).</li>
+                  <li><strong>Voz automática:</strong> a voz neutra do próprio modelo, sem áudio nem descrição.</li>
+                </ul>
+              </li>
+              <li><strong>Passo 2, Texto:</strong> o idioma (ou Automático), o texto e as <strong>Pausas entre frases</strong>: Curtas, Padrão e Longas são as mesmas da tela Generate e valem para todos os modelos. O VozLab divide o texto em blocos, põe a pausa entre eles e iguala o volume. <strong>Do modelo</strong>: o texto vai inteiro e o OmniVoice decide.</li>
+              <li><strong>Ajustes do modelo</strong> (recolhidos): passos, CFG, velocidade, duração, <strong>semente</strong> (mesmo número = mesmo áudio), redução de ruído e, no Avançado, os ajustes internos do modelo. "Voltar tudo ao padrão" desfaz tudo.</li>
+              <li><strong>Gerar e Cancelar:</strong> a tela espera o tempo que for preciso e mostra o andamento ("bloco 2 de 5"). Cancelar para em poucos segundos.</li>
+              <li><strong>Passo 3, Nesta sessão:</strong> os áudios gerados aqui, até fechar o VozLab. Baixe os que quiser guardar.</li>
+              <li>Na tela <strong>Vozes</strong>, o botão <strong>Usar no OmniVoice</strong> abre esta tela com a voz já escolhida.</li>
+            </ul>
+            <p><strong>Placa de vídeo:</strong> o OmniVoice usa a mesma placa do VozLab. Os dois se revezam sozinhos: quem chega depois espera o outro terminar, e nenhuma geração é cortada. Uma linha pequena avisa quando a placa está com o outro programa. Se não usar o OmniVoice, dá para esconder esta tela em <strong>Settings</strong>.</p>
+            <p><strong>Com o VozLab fechado (modo de emergência):</strong> o atalho <code>OmniVoice\INICIAR_OMNIVOICE_WEBUI.bat</code> abre o painel próprio do OmniVoice em <code>http://127.0.0.1:17495/painel</code>, em português, com os mesmos ajustes, mas sem as pausas do VozLab. Para fechar tudo do OmniVoice: <code>DESLIGAR_OMNIVOICE_SERVICE.bat</code>.</p>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Importar vozes</h2></summary>
+            <ol>
+              <li>Escolha um arquivo <strong>.zip</strong> com várias vozes e o idioma a usar quando não der para descobrir pelo nome.</li>
+              <li>Clique em <strong>Ler pacote</strong>. O VozLab mostra o que encontrou; nada entra na biblioteca ainda.</li>
+              <li>Marque as vozes que quer (<strong>Marcar todas as novas</strong> ajuda) e clique em <strong>Importar</strong>.</li>
+            </ol>
+            <p>Cada áudio vira uma voz com o nome do arquivo e precisa ter de 2 a 30 segundos. Abra "Que tipo de pacote funciona?" na própria tela para ver todos os formatos aceitos.</p>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Models e Settings</h2></summary>
+            <ul>
+              <li><strong>Models:</strong> lista os modelos de voz. "Na memória" quer dizer carregado na placa de vídeo agora. Tirar da memória libera VRAM (memória da placa de vídeo) sem apagar nada do disco; o modelo volta a carregar sozinho na próxima geração.</li>
+              <li><strong>Baixar modelos:</strong> os modelos que não estão no PC aparecem no fim da lista como "Não baixado", com o tamanho aproximado e o link da página dele no Hugging Face (o site de onde vêm os modelos). <strong>Baixar</strong> traz o modelo para a biblioteca de modelos, mostra o andamento e no fim o deixa carregado na placa. O download só acrescenta: nenhum modelo já instalado é apagado ou trocado. Alguns modelos precisam de um componente extra do Python; nesse caso a tela avisa qual é.</li>
+              <li><strong>Settings:</strong> estado do servidor, espaço em disco usado pelos temporários e o botão para mostrar ou esconder a tela OmniVoice.</li>
+              <li>Esta é a única interface do VozLab. A antiga foi removida em outubro de 2026.</li>
+            </ul>
+          </details>
+
+          <details class="panel guide-section">
+            <summary><h2>Dicas e problemas comuns</h2></summary>
+            <ul>
+              <li><strong>Placa de vídeo de 8 GB:</strong> gere uma coisa de cada vez. Jogos, o OmniVoice ou outro programa de IA abertos ao mesmo tempo podem deixar a geração lenta ou dar falta de memória. Use <strong>Models</strong> ou <strong>Liberar VRAM</strong> para soltar a placa.</li>
+              <li><strong>Texto longo parou no meio:</strong> abra o trabalho e clique em <strong>▶ Retomar</strong>. Os blocos prontos não se perdem.</li>
+              <li><strong>Painel diz "Concluído", mas não tem áudio final</strong> (caso raro: o servidor caiu depois do último bloco): abra <strong>Remontar o áudio final</strong> e clique em <strong>Remontar áudio final</strong>. Os blocos já estão todos gravados.</li>
+              <li><strong>Desligar o texto longo novo:</strong> em <code>%APPDATA%\sh.voicebox.app\config\texto_longo.json</code>, troque <code>"texto_longo_v2": true</code> por <code>false</code> e abra o VozLab de novo. Renomear ou apagar o arquivo não desliga: o modo novo é o padrão. Tudo volta a funcionar como antes. Detalhes no manual <code>docs\COMO_USAR_TEXTO_LONGO.md</code>.</li>
+              <li><strong>Um trecho saiu estranho:</strong> no painel de blocos, ouça o bloco e use <strong>↻ Regerar este bloco</strong>. Não precisa gerar tudo de novo.</li>
+              <li><strong>Volume diferente entre áudios:</strong> o áudio final do texto longo sai em −19 LUFS (unidade de volume percebido). Para mais alto, use <strong>Remontar</strong> com −16.</li>
+              <li><strong>A voz escorregou de sotaque</strong> (ex.: português de Portugal): ouça os blocos e regere os que escorregaram. Vozes gravadas de pessoas reais costumam manter melhor o sotaque que vozes sintéticas.</li>
+              <li><strong>OmniVoice "Serviço parado":</strong> clique em <strong>Iniciar Serviço</strong> e espere alguns segundos.</li>
+            </ul>
+          </details>
+        </section>
+      </main>
+      <footer class="footer">VozLab · estúdio de voz local</footer>
+    </div>
+  </div>
+  <dialog id="lj-confirm" class="lj-dialog" aria-labelledby="lj-confirm-title">
+    <form id="lj-confirm-form" method="dialog">
+      <h2 id="lj-confirm-title">Apagar os blocos deste trabalho?</h2>
+      <p id="lj-confirm-text"></p>
+      <p>Isso <strong>não pode ser desfeito</strong>. O áudio final continua no histórico, mas não será mais possível regerar blocos nem remontar.</p>
+      <label class="field-label" for="lj-confirm-input">Para confirmar, digite LIMPAR</label>
+      <input id="lj-confirm-input" class="field" type="text" autocomplete="off" spellcheck="false">
+      <div class="lj-dialog-actions"><button id="lj-confirm-cancel" class="secondary-button" type="button">Manter os blocos</button><button id="lj-confirm-go" class="primary danger-button" type="submit" disabled>Apagar blocos</button></div>
+    </form>
+  </dialog>
+  <dialog id="hist-confirm" class="lj-dialog" aria-labelledby="hist-confirm-title">
+    <form id="hist-confirm-form" method="dialog">
+      <h2 id="hist-confirm-title">Excluir esta geração?</h2>
+      <p id="hist-confirm-text"></p>
+      <p>O arquivo de áudio é <strong>apagado do disco</strong> (com as versões e os blocos de texto longo). Isso <strong>não pode ser desfeito</strong>.</p>
+      <div id="hist-confirm-type" hidden>
+        <label class="field-label" for="hist-confirm-input">Para confirmar, digite EXCLUIR</label>
+        <input id="hist-confirm-input" class="field" type="text" autocomplete="off" spellcheck="false">
+      </div>
+      <p id="hist-confirm-status" class="field-help" role="status"></p>
+      <div class="lj-dialog-actions"><button id="hist-confirm-cancel" class="secondary-button" type="button">Manter</button><button id="hist-confirm-go" class="primary danger-button" type="submit">Excluir</button></div>
+    </form>
+  </dialog>
+</body>
+</html>

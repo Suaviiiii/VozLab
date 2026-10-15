@@ -1,0 +1,34 @@
+{
+  "kind": "avisos_modelo_idioma",
+  "versao": 1,
+  "nota": "Fase 8 da Missao Texto Longo. So entram avisos com medicao registrada (campo fonte). Os avisos nunca bloqueiam a geracao. 'modelos' usa os valores do seletor de modelo da tela; 'idiomas' usa o idioma efetivo do texto (com 'Idioma da voz', vale o idioma da voz).",
+  "avisos": [
+    {
+      "id": "f5_pt_wer",
+      "modelos": ["f5_tts"],
+      "idiomas": ["pt"],
+      "aviso": "F5-TTS em português errou 68% das palavras no nosso teste; os outros modelos ficaram entre 14% e 20%.",
+      "detalhe": "Teste de 1 página (17 blocos) com a voz [Studio] [BR] Thalita, medido pelo Whisper em 10/10/2026. O problema é o modelo em português, não os blocos. Dá para gerar mesmo assim.",
+      "medido_em": "2026-10-10",
+      "fonte": "relatorios/teste_texto_longo.md"
+    },
+    {
+      "id": "qwen_pt_ptpt",
+      "modelos": ["qwen:1.7B", "qwen:0.6B"],
+      "idiomas": ["pt"],
+      "aviso": "Qwen em português: com uma voz sintética, 1 bloco em 20 saiu com sotaque de Portugal. Ouça os blocos.",
+      "detalhe": "Fase 7 (14/10/2026): com a voz [Studio] [BR] Thalita, o bloco 3 saiu em português de Portugal no 1.7B e no 0.6B. A voz gravada [Português] Feminino - PTBR68 não escorregou.",
+      "medido_em": "2026-10-14",
+      "fonte": "relatorios/texto_longo/fase7.md"
+    },
+    {
+      "id": "qwen06_pt_disparo",
+      "modelos": ["qwen:0.6B"],
+      "idiomas": ["pt"],
+      "aviso": "Qwen 0.6B: 1 bloco em 20 disparou para 44 s e gaguejou; “Revisar blocos” pegou.",
+      "detalhe": "Fase 7 (14/10/2026), voz [Português] Feminino - PTBR68: o detector antigo deixou passar; a revisão com o Whisper marcou o bloco e ele foi refeito.",
+      "medido_em": "2026-10-14",
+      "fonte": "relatorios/texto_longo/fase7.md"
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+# NÃO TESTADO. GTX 1000 (Pascal) só roda até o PyTorch 2.14 com CUDA 12.6 (aviso oficial de 04/09/2026). Nesta placa o VozLab usa só o OmniVoice. --index-url https://download.pytorch.org/whl/cu126
+torch==2.9.1
+torchaudio==2.9.1

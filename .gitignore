@@ -1,0 +1,48 @@
+# Virtual environments and python artifacts
+venv*/
+env*/
+__pycache__/
+*.pyc
+
+# Heavy data, test artifacts and backups
+data/
+testes_texto_longo/
+fixtures_texto_longo/
+audicao_*/
+candidatos/
+biblioteca_vozes_missao/
+_backup*/
+_quarentena/
+_ferramentas_vozes/
+
+# Binary files, models and executables
+*.exe
+*.original
+*.dll
+*.so
+*.dylib
+*.bin
+*.pt
+*.safetensors
+*.onnx
+*.wav
+*.mp3
+*.flac
+*.ogg
+*.zip
+*.tar.*
+*.7z
+*.db
+*.sqlite*
+Assets.car
+voicebox.icns
+voicebox.ico
+
+# VozLab: configuracao local de cada PC (ver vozlab/vozlab.ini.exemplo)
+vozlab.ini
+
+# Repositório público do VozLab
+modelos/
+OmniVoice/.venv/
+OmniVoice/outputs/
+OmniVoice/cache_prompts/

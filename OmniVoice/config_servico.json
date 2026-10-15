@@ -1,0 +1,8 @@
+{
+  "inatividade_min": 10,
+  "vozlab_url": "http://127.0.0.1:17493",
+  "espera_vozlab_max_s": 7200,
+  "montar_painel": true,
+  "porta_painel_antiga": 7860,
+  "montar_painel_original": false
+}

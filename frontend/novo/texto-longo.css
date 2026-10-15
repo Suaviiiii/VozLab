@@ -1,0 +1,65 @@
+/* Painel de texto longo (Fase 5). Usa as mesmas cores da interface nova. */
+.composer-panel{overflow-y:auto}
+/* Com o painel aberto, a caixa de texto encolhe para o painel caber na tela. */
+.composer-panel:has(.long-job:not([hidden])) .textarea{flex:none;height:140px;min-height:110px}
+.composer-panel:has(.long-job:not([hidden])) .composer-heading{margin-bottom:8px}
+.long-job{display:grid;gap:10px;margin-top:14px;padding:14px;border:1px solid var(--border);border-radius:11px;background:#111318}
+.long-job[hidden],#lj-body[hidden],#lj-loading[hidden],.lj-note[hidden],.lj-actions>div[hidden],.lj-section[hidden]{display:none}
+.lj-head{display:flex;align-items:flex-start;gap:10px}
+.lj-head>div{flex:1;min-width:0}
+.lj-head h2{margin:2px 0 0;font-size:17px}
+.lj-head .icon-button{min-width:34px;min-height:34px;font-size:13px}
+.lj-status{flex:none;align-self:center;padding:4px 9px;border-radius:999px;background:#2a2d36;color:var(--secondary);font-size:12px;font-weight:700}
+.lj-status[data-state="em_andamento"],.lj-status[data-state="pendente"]{background:#3b3024;color:#f8d29a}
+.lj-status[data-state="concluido"]{background:#173323;color:var(--success)}
+.lj-status[data-state="interrompido"],.lj-status[data-state="cancelado"],.lj-status[data-state="sem_progresso"],.lj-status[data-state="possivelmente_travado"]{background:#3a2c14;color:#ffcf7a}
+.lj-status[data-state="falhou"]{background:#3a1c1c;color:var(--danger)}
+.lj-bar{height:10px;overflow:hidden;border-radius:999px;background:#262932}
+.lj-bar-fill{width:0;height:100%;border-radius:inherit;background:var(--accent);transition:width .4s ease}
+.lj-progress-text{margin:0;font-size:13px;color:var(--text)}
+.lj-note{margin:0;padding:8px 10px;border-radius:8px;background:#1d2029;color:var(--secondary);font-size:12px;overflow-wrap:anywhere}
+.lj-note.warn{background:#3a2c14;color:#ffcf7a}
+.lj-note.error{background:#3a1c1c;color:var(--danger)}
+.lj-note.ok{background:#15231b;color:var(--success)}
+.lj-actions{display:flex;flex-wrap:wrap;gap:12px}
+.lj-actions>div{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.lj-actions .primary{min-height:40px;padding:8px 14px}
+.lj-section{border-top:1px solid var(--border);padding-top:10px}
+.lj-section summary{cursor:pointer;font-weight:700;font-size:13px}
+.lj-section summary .field-help{font-weight:400;margin-left:4px}
+.lj-form{display:grid;gap:8px;margin-top:8px}
+.lj-form p{margin:0}
+.lj-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.lj-form-footer{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.lj-blocks{display:grid;gap:7px;margin:9px 0 0;padding:0;list-style:none;max-height:420px;overflow-y:auto}
+.lj-block{min-width:0;padding:9px 10px;border:1px solid var(--border);border-left-width:3px;border-radius:8px;background:#15171d}
+.lj-block[data-state="ok"]{border-left-color:var(--success)}
+.lj-block[data-state="falhou"]{border-left-color:var(--danger)}
+.lj-block[data-state="em_andamento"],.lj-block[data-state="pendente"]{border-left-color:#6c5131}
+.lj-block-head{display:flex;justify-content:space-between;gap:8px;font-size:13px}
+.lj-block-state{color:var(--secondary);font-size:12px}
+.lj-block-meta{display:block;color:var(--muted);font-size:11px}
+.lj-block-text{margin:5px 0 0;font-size:13px;line-height:1.45;overflow-wrap:anywhere}
+.lj-block p.error-text{margin:5px 0 0;font-size:12px}
+.lj-block-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:7px}
+.lj-block-actions .secondary-button{min-height:34px;padding:5px 10px;font-size:12px}
+.lj-block .audio-player{height:36px;margin-top:7px}
+.lj-cleanup p{margin:0 0 7px}
+.lj-cleanup p:last-child{margin:7px 0 0}
+.danger-button{border-color:#7a3a3a!important;color:var(--danger)!important}
+.primary.danger-button{background:#5a2323;color:#ffe1e1!important}
+.primary.danger-button:disabled{opacity:.5}
+.long-job button:disabled{opacity:.55;cursor:not-allowed}
+.lj-dialog{max-width:min(460px,calc(100vw - 32px));padding:20px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:13px}
+.lj-dialog::backdrop{background:#000a}
+.lj-dialog h2{margin:0 0 10px;font-size:18px}
+.lj-dialog p{color:var(--secondary);font-size:13px}
+.lj-dialog-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:14px;flex-wrap:wrap}
+.history-item .lj-open{margin-top:8px;min-height:34px;padding:5px 10px;font-size:12px}
+@media(max-width:720px){
+  .lj-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .lj-blocks{max-height:none}
+}
+/* Fase 7: bloco marcado pelo revisor (Whisper) */
+.lj-flag{font-size:11px;font-weight:700;color:#f8d29a;border:1px solid var(--accent);border-radius:999px;padding:1px 7px;margin-left:auto;margin-right:6px;cursor:help}
+.lj-block[data-ouvir="1"]{border-color:var(--accent)}

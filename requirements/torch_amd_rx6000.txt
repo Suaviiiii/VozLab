@@ -1,0 +1,1 @@
+# NÃO TESTADO. AMD TheRock (pacote próprio do RDNA 2): pip install --index-url https://stable.repo.amd.com/rocm/whl-next/ "torch[device-gfx103x]" torchaudio (troque gfx103x pelo código da sua placa, ex.: device-gfx1032 = RX 6600). Conferir em https://github.com/ROCm/TheRock/blob/main/RELEASES.md

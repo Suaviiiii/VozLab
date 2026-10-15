@@ -1,0 +1,17 @@
+COMO ADICIONAR NOVAS VOZES AO SEU CATÁLOGO DO OMNIVOICE:
+
+1. Coloque qualquer arquivo de áudio (.wav, .mp3, .flac, .ogg, .m4a) nesta pasta:
+   OmniVoice\catalogo_vozes\
+
+2. Dê um nome descritivo ao arquivo, por exemplo:
+   - "Voz_Narrador_Grave.wav"
+   - "Voz_Feminina_Suave.wav"
+   - "Locutor_Comercial.wav"
+
+3. (Opcional) Se quiser que a transcrição do áudio seja instantânea sem usar o Whisper:
+   Basta criar um arquivo .txt com o mesmo nome exato do áudio:
+   Exemplo:
+   - "Voz_Narrador_Grave.wav"
+   - "Voz_Narrador_Grave.txt" (contendo o texto que a pessoa falou no áudio)
+
+4. Na interface web do OmniVoice, clique no botão "🔄 Atualizar" ao lado do Catálogo de Vozes e a nova voz aparecerá imediatamente na lista suspensa!
