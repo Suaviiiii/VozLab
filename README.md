@@ -4,10 +4,12 @@
 
 <h1 align="center">VozLab</h1>
 
+<h3 align="center">🇧🇷 Voz Local — Para as GPUs do Brasil.</h3>
+
 <p align="center">
-  <strong>Estúdio de voz com IA, gratuito e local, em português.</strong><br/>
-  Um "mod" do <a href="https://github.com/jamiepine/voicebox">Voicebox</a> + <a href="https://github.com/k2-fsa/OmniVoice">OmniVoice</a>,
-  feito para criadores de conteúdo com PCs comuns.
+  <strong>Vozes de IA de alta qualidade na placa de vídeo que você já tem.</strong><br/>
+  Gratuito, local e em português. Um "mod" do <a href="https://github.com/jamiepine/voicebox">Voicebox</a> + <a href="https://github.com/k2-fsa/OmniVoice">OmniVoice</a>,
+  ajustado placa por placa para PCs comuns.
 </p>
 
 <p align="center">
@@ -26,6 +28,15 @@
 </p>
 
 ---
+
+## Por que o VozLab?
+| | |
+|---|---|
+| 🎮 **Feito para placas modestas** | Roda em placas de **4 a 8 GB**: AMD RX 6000/7000 e NVIDIA GTX 1000/RTX 3000. Ele reconhece a sua placa sozinho e mostra só o que cabe nela, sem tentativa e erro. Cada limite foi **medido**, não chutado. |
+| 🎙️ **Qualidade de estúdio** | Os melhores modelos de voz abertos (Qwen3-TTS, Chatterbox, OmniVoice) clonam uma voz com poucos segundos de áudio. No texto longo, o Whisper ouve cada bloco e **refaz sozinho** os que saíram errados. |
+| ⚡ **Rápido onde importa** | O OmniVoice gera mais rápido que o tempo real (~2,5× numa RX 7600) e já fica "aquecido" ao carregar. O Kokoro passa de 10×. Textos longos rodam em blocos e **retomam de onde pararam** se o PC desligar. |
+| 🧊 **Sem congelar o Windows** | O trabalho pesado fica na placa de vídeo, não no processador. Um modelo usa a placa por vez (o VozLab e o OmniVoice se revezam sozinhos, sem cortar nenhuma geração). E se o programa fechar de repente, o servidor se desliga sozinho e devolve a placa. |
+| 🔒 **100% no seu PC** | Sem mensalidade e sem mandar o seu texto para a internet. |
 
 ## O que é o VozLab?
 O VozLab transforma texto em voz **no seu próprio computador**, sem mensalidade e sem mandar o seu texto para a internet. Ele clona uma voz a partir de alguns segundos de áudio, lê textos longos (capítulos, roteiros de vídeo) em blocos e junta tudo num áudio só.
