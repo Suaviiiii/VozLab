@@ -19,8 +19,10 @@
 </p>
 
 <p align="center">
-  <!-- Capturas de tela: colocar em .github/assets/ antes de publicar -->
-  <img src=".github/assets/tela-generate.png" alt="Tela principal do VozLab" width="800" />
+  <!-- Capturas da interface (servidor de teste, sem vozes importadas). Trocar por capturas com a biblioteca antes de publicar. -->
+  <img src=".github/assets/tela-generate.jpg" alt="Tela principal do VozLab" width="800" />
+  <br/><br/>
+  <img src=".github/assets/tela-models.png" alt="Tela Models com o perfil da placa" width="800" />
 </p>
 
 ---
