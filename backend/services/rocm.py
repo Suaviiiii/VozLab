@@ -136,6 +136,21 @@ def _needs_rocm_libs_download() -> bool:
     return installed != ROCM_LIBS_VERSION
 
 
+def _assert_trusted_download(target_url: Optional[str], label: str) -> None:
+    """Recusa URLs que não sejam HTTPS no host de releases confiável (GITHUB_RELEASES_URL)."""
+    from urllib.parse import urlparse
+
+    if not target_url:
+        raise RuntimeError(f"{label}: URL de download ausente.")
+    base = urlparse(GITHUB_RELEASES_URL)
+    alvo = urlparse(target_url)
+    host_ok = alvo.hostname == base.hostname or (
+        base.hostname is not None and (alvo.hostname or "").endswith("." + base.hostname)
+    )
+    if alvo.scheme != "https" or not host_ok:
+        raise RuntimeError(f"{label}: origem de download não confiável ({target_url}).")
+
+
 async def _download_and_extract_archive(
     client,
     url: str,
@@ -164,6 +179,12 @@ async def _download_and_extract_archive(
     if temp_path.exists():
         temp_path.unlink()
 
+    # Supply-chain: só baixamos de HTTPS, de um host confiável, e NUNCA sem checksum.
+    # (Ver nota em cuda.py: não protege contra upstream comprometido, mas fecha o extract
+    # de arquivo não verificado e o download por canal inseguro/estranho.)
+    _assert_trusted_download(url, label)
+    _assert_trusted_download(sha256_url, label)
+
     # Fetch expected checksum (fail-fast: never extract an unverified archive)
     expected_sha = None
     if sha256_url:
@@ -174,6 +195,8 @@ async def _download_and_extract_archive(
             logger.info(f"{label}: expected SHA-256: {expected_sha[:16]}...")
         except Exception as e:
             raise RuntimeError(f"{label}: failed to fetch checksum from {sha256_url}") from e
+    if not expected_sha:
+        raise RuntimeError(f"{label}: download abortado — checksum obrigatório ausente.")
 
     # Stream download, verify, and extract — always clean up temp file
     downloaded = 0

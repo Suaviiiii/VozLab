@@ -1,9 +1,11 @@
 """FastAPI application factory, middleware, and lifecycle events."""
 
 import asyncio
+import ipaddress
 import logging
 import os
 import re
+import secrets
 import subprocess
 import sys
 from contextlib import asynccontextmanager
@@ -208,10 +210,33 @@ def _configure_cors(application: FastAPI) -> None:
     hosts_ok = {"127.0.0.1", "localhost", "[::1]", "tauri.localhost"} | {
         h.strip().lower() for h in os.environ.get("VOICEBOX_ALLOWED_HOSTS", "").split(",") if h.strip()}
     origens_ok = set(all_origins)
+    # Token de acesso remoto. Pedidos da própria máquina (loopback) nunca precisam dele — é a tela
+    # do VozLab. Pedidos vindos de OUTRA máquina só passam com Authorization: Bearer <VOICEBOX_AUTH_TOKEN>;
+    # sem o token configurado, nada de fora entra (o modo --host 0.0.0.0 fica fechado por padrão).
+    auth_token = os.environ.get("VOICEBOX_AUTH_TOKEN", "").strip()
 
     @application.middleware("http")
     async def _trava_de_origem(request, call_next):
         from fastapi.responses import JSONResponse
+
+        addr = request.client.host if request.client else None
+        eh_loopback = False
+        if addr:
+            try:
+                eh_loopback = ipaddress.ip_address(addr).is_loopback
+            except ValueError:
+                eh_loopback = False
+        if not eh_loopback:
+            if not auth_token:
+                return JSONResponse(
+                    {"detail": "Acesso remoto desativado. Defina VOICEBOX_AUTH_TOKEN para liberá-lo."},
+                    status_code=403,
+                )
+            enviado = request.headers.get("authorization", "")
+            prefixo = "bearer "
+            token_enviado = enviado[len(prefixo):].strip() if enviado.lower().startswith(prefixo) else ""
+            if not (token_enviado and secrets.compare_digest(token_enviado, auth_token)):
+                return JSONResponse({"detail": "Token de acesso inválido ou ausente."}, status_code=401)
 
         host = (request.headers.get("host") or "").lower()
         nome = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]")[0] + "]"

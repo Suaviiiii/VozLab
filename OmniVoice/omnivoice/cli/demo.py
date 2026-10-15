@@ -132,7 +132,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--device", default=None, help="Device to use. Auto-detected if not specified."
     )
-    parser.add_argument("--ip", default="0.0.0.0", help="Server IP (default: 0.0.0.0).")
+    parser.add_argument("--ip", default="127.0.0.1", help="Server IP (default: 127.0.0.1, local only). Use 0.0.0.0 to expose on the network — no authentication, do this only on a trusted network.")
     parser.add_argument(
         "--port", type=int, default=7860, help="Server port (default: 7860)."
     )
