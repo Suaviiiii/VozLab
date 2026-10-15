@@ -30,6 +30,45 @@ logger = logging.getLogger(__name__)
 SINGLETON_ID = 1
 PENDING_TTL_SECONDS = 600  # the whole browser flow must finish within 10 min
 
+# A chave bearer da Cloud é um segredo. Em vez de guardá-la em texto puro no SQLite
+# (qualquer processo/malware/backup leria), guardamos no cofre do sistema operacional
+# (Windows Credential Manager / Keychain / Secret Service) via keyring. No banco fica
+# só o PREFIXO (não é segredo; já aparece em get_status) como marcador de "conectado".
+# Se o cofre não estiver disponível, caímos de volta para a coluna do banco (comportamento
+# antigo) para nunca quebrar o app.
+_KEYRING_SERVICE = "VozLab Cloud"
+_KEYRING_USER = "api_key"
+
+
+def _vault_set(api_key: str) -> bool:
+    try:
+        import keyring
+
+        keyring.set_password(_KEYRING_SERVICE, _KEYRING_USER, api_key)
+        return True
+    except Exception:
+        logger.debug("keyring indisponível ao gravar a chave da Cloud", exc_info=True)
+        return False
+
+
+def _vault_get() -> str | None:
+    try:
+        import keyring
+
+        return keyring.get_password(_KEYRING_SERVICE, _KEYRING_USER)
+    except Exception:
+        logger.debug("keyring indisponível ao ler a chave da Cloud", exc_info=True)
+        return None
+
+
+def _vault_del() -> None:
+    try:
+        import keyring
+
+        keyring.delete_password(_KEYRING_SERVICE, _KEYRING_USER)
+    except Exception:
+        logger.debug("keyring indisponível ao apagar a chave da Cloud", exc_info=True)
+
 # state -> expiry epoch. In-memory: a single backend process owns the flow, and a
 # dropped pairing should simply be restarted.
 _pending: dict[str, float] = {}
@@ -139,11 +178,22 @@ def _get_or_create_row(db: Session) -> DBCloudSettings:
     return row
 
 
+def _migrate_plaintext_if_needed(db: Session, row: DBCloudSettings) -> None:
+    """Chave antiga guardada em texto puro no banco (> prefixo) vai para o cofre uma vez só."""
+    chave = row.api_key
+    if chave and len(chave) > 17 and _vault_get() is None and _vault_set(chave):
+        row.api_key = chave[:17]  # no banco fica só o prefixo (não-segredo)
+        db.commit()
+        logger.info("Chave da Cloud migrada do banco para o cofre do sistema.")
+
+
 def _store_key(db: Session, *, api_key: str, device_name: str | None, account_user_id: str | None):
     from datetime import datetime
 
     row = _get_or_create_row(db)
-    row.api_key = api_key
+    # Segredo no cofre do SO; no banco só o prefixo. Se o cofre falhar, cai para o
+    # comportamento antigo (chave no banco) para não deixar o usuário sem conseguir conectar.
+    row.api_key = api_key[:17] if _vault_set(api_key) else api_key
     row.device_name = device_name
     row.account_user_id = account_user_id
     row.connected_at = datetime.utcnow()
@@ -153,9 +203,12 @@ def _store_key(db: Session, *, api_key: str, device_name: str | None, account_us
 def get_status(db: Session) -> dict:
     """Local view of the cloud link — never returns the full key."""
     row = _get_or_create_row(db)
-    connected = bool(row.api_key)
+    _migrate_plaintext_if_needed(db, row)
+    marker = row.api_key
+    vault_key = _vault_get()
+    connected = bool(marker) or bool(vault_key)
     # Prefix only: "voicebox_" (9) + 8 chars, matching the cloud's key_prefix.
-    key_prefix = row.api_key[:17] if row.api_key else None
+    key_prefix = marker[:17] if marker else (vault_key[:17] if vault_key else None)
     return {
         "connected": connected,
         "device_name": row.device_name if connected else None,
@@ -170,6 +223,7 @@ def disconnect(db: Session) -> None:
     """Forget the local credential. The key remains valid on the server until
     revoked from the account dashboard — surface that in the UI."""
     row = _get_or_create_row(db)
+    _vault_del()
     row.api_key = None
     row.device_name = None
     row.account_user_id = None
@@ -180,4 +234,15 @@ def disconnect(db: Session) -> None:
 def get_api_key(db: Session) -> str | None:
     """The stored bearer key, for the (future) sync client. None if not linked."""
     row = _get_or_create_row(db)
-    return row.api_key
+    _migrate_plaintext_if_needed(db, row)
+    if not row.api_key:
+        return None
+    # A chave completa vive no cofre; o banco guarda só o prefixo.
+    chave = _vault_get()
+    if chave:
+        return chave
+    # Legado / cofre indisponível: o banco ainda guarda a chave completa.
+    if len(row.api_key) > 17:
+        return row.api_key
+    # Só temos o prefixo e o cofre não devolveu nada — vínculo não recuperável aqui.
+    return None
