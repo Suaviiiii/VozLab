@@ -41,6 +41,29 @@ logger = logging.getLogger("omnivoice_service")
 
 app = FastAPI(title="OmniVoice Local Service", version="0.2.1")
 
+
+# Trava de origem (15/10/2026), igual à do VozLab: um site aberto no navegador não consegue mandar
+# comandos para este serviço (carregar, descarregar, cancelar, gerar). Pedidos sem Origin (o VozLab e
+# scripts locais) e os da própria tela (mesmo endereço ou a tela do VozLab) continuam valendo.
+_HOSTS_OK = {"127.0.0.1", "localhost", "[::1]"} | {
+    h.strip().lower() for h in os.environ.get("OMNIVOICE_ALLOWED_HOSTS", "").split(",") if h.strip()}
+_ORIGENS_OK = {"http://127.0.0.1:17493", "http://localhost:17493"}
+
+
+@app.middleware("http")
+async def _trava_de_origem(request, call_next):
+    from fastapi.responses import JSONResponse
+
+    host = (request.headers.get("host") or "").lower()
+    nome = host.rsplit(":", 1)[0] if not host.startswith("[") else host.split("]")[0] + "]"
+    if host and nome not in _HOSTS_OK:
+        return JSONResponse({"detail": "Host não permitido"}, status_code=403)
+    if request.method not in ("GET", "HEAD", "OPTIONS"):
+        origem = request.headers.get("origin")
+        if origem is not None and origem not in _ORIGENS_OK and origem not in (f"http://{host}", f"https://{host}"):
+            return JSONResponse({"detail": "Origem não permitida"}, status_code=403)
+    return await call_next(request)
+
 BASE_DIR = Path(__file__).resolve().parent
 OUTPUT_DIR = BASE_DIR / "outputs" / "service_generations"
 OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
