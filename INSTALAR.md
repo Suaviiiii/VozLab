@@ -49,15 +49,27 @@ venv_rocm\Scripts\python.exe -m pip install -r requirements\base.txt
 ```
 > Mesmo numa placa NVIDIA, o nome da pasta continua `venv_rocm`, porque é o que o lançador procura. Para trocar, use `PythonDir` no `vozlab.ini`.
 
-## 4. Ambiente do OmniVoice (opcional, recomendado)
+## 4. Ambiente do OmniVoice (obrigatório para usar o OmniVoice)
+> [!IMPORTANT]
+> **NVIDIA GTX 1000 (1050 Ti, 1060, 1070): este passo é OBRIGATÓRIO**, porque nessa placa o OmniVoice é o único modelo.
+> Nas outras placas, sem este passo o VozLab funciona, mas o OmniVoice não liga.
+> O OmniVoice precisa de um ambiente Python **só dele** (a pasta `OmniVoice\.venv`), com o `transformers` 5 ou mais novo. O `venv_rocm` do passo 3 usa o 4.x e **não serve** para ele.
+
 ```bat
 cd OmniVoice
 py -3.12 -m venv .venv
 .venv\Scripts\python.exe -m pip install --upgrade pip
-:: o mesmo PyTorch da sua família (passo 3), agora no .venv do OmniVoice
+```
+**PyTorch da sua família, de novo, agora no `.venv`.** É a mesma linha do passo 3, trocando `venv_rocm` por `.venv` e `requirements\` por `..\requirements\`. Exemplo na GTX 1000:
+```bat
+.venv\Scripts\python.exe -m pip install -r ..\requirements\torch_nvidia_gtx1000.txt --index-url https://download.pytorch.org/whl/cu126
+```
+Depois, o OmniVoice e o resto dos pacotes dele:
+```bat
 .venv\Scripts\python.exe -m pip install -e .
 cd ..
 ```
+Se a pasta `.venv` faltar ou estiver incompleta, a janela "OmniVoice Service" avisa com **[ERRO]** e diz o que fazer.
 
 ## 5. Lançador e configuração
 ```bat
