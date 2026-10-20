@@ -33,6 +33,18 @@ DEFAULT_MAX_CHUNK_CHARS = 220
 MAX_RUNAWAY_RETRIES = 2
 MIN_RUNAWAY_RETRY_CHARS = 50
 
+# Áudio curto demais para o texto: o Qwen às vezes "desiste" no 1º passo ao clonar uma voz de outro
+# idioma (20/10/2026, uma voz alemã falando português: 7 de 12 sementes deram 0,2 s para 113 caracteres;
+# com uma voz brasileira, 0 de 10). A fala normal fica perto de 0,07 s por caractere e a falha perto de
+# 0,002; abaixo de 0,015 é falha, e o bloco é gerado de novo com outra semente.
+CURTO_S_POR_CARACTERE = 0.015
+CURTO_MIN_CARACTERES = 20
+CURTO_TENTATIVAS = 8  # cada falha custa ~0,5 s; com uma voz alemã (58% de falha), 4 tentativas não bastaram 1 vez em 5
+
+
+def audio_curto_demais(n_caracteres: int, duracao_s: float) -> bool:
+    return n_caracteres >= CURTO_MIN_CARACTERES and duracao_s < n_caracteres * CURTO_S_POR_CARACTERE
+
 # Common abbreviations that should NOT be treated as sentence endings.
 # Lowercase for case-insensitive matching.
 _ABBREVIATIONS = frozenset(
@@ -851,20 +863,35 @@ async def generate_single_chunk(
     retry_depth: int = 0,
 ) -> tuple[np.ndarray, int]:
     """Generate audio for a single text chunk with timeout, runaway detection and trimming."""
-    try:
-        chunk_audio, chunk_sr = await asyncio.wait_for(
-            backend.generate(
-                chunk_text,
-                voice_prompt,
-                language,
-                chunk_seed,
-                instruct,
-            ),
-            timeout=300.0,
+    for tentativa in range(CURTO_TENTATIVAS):
+        semente = chunk_seed + 7919 * tentativa if (chunk_seed is not None and tentativa) else chunk_seed
+        try:
+            chunk_audio, chunk_sr = await asyncio.wait_for(
+                backend.generate(
+                    chunk_text,
+                    voice_prompt,
+                    language,
+                    semente,
+                    instruct,
+                ),
+                timeout=300.0,
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Chunk generation timed out (300s) for text: {chunk_text[:40]}...")
+            raise RuntimeError("TTS chunk generation timed out (exceeded 300s).")
+        duracao = len(chunk_audio) / chunk_sr if chunk_sr else 0.0
+        if not audio_curto_demais(len(chunk_text), duracao):
+            break
+        logger.warning(
+            "Áudio curto demais (%.2f s para %d caracteres), tentativa %d de %d; gerando de novo com outra semente",
+            duracao, len(chunk_text), tentativa + 1, CURTO_TENTATIVAS,
         )
-    except asyncio.TimeoutError:
-        logger.error(f"Chunk generation timed out (300s) for text: {chunk_text[:40]}...")
-        raise RuntimeError("TTS chunk generation timed out (exceeded 300s).")
+    else:
+        raise RuntimeError(
+            f"O modelo devolveu um áudio curto demais ({duracao:.1f} s para {len(chunk_text)} caracteres) "
+            f"em {CURTO_TENTATIVAS} tentativas. Isso costuma acontecer ao clonar uma voz de outro idioma: "
+            "use uma voz no idioma do texto ou outro modelo."
+        )
 
     if runaway_detector is not None and runaway_detector(chunk_audio, chunk_sr):
         if retry_depth >= MAX_RUNAWAY_RETRIES or len(chunk_text) <= MIN_RUNAWAY_RETRY_CHARS:

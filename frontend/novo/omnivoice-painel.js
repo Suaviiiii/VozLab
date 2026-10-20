@@ -61,7 +61,7 @@
     try {
       await fetch('/omnivoice/control', {method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'start'})});
-      for (let i = 1; i <= 45; i++) {
+      for (let i = 1; i <= 180; i++) {
         await new Promise((r) => setTimeout(r, 1000));
         if ((await atualizarServico()).status === 'online') break;
         $('ov-status-text').textContent = 'Ligando… (' + i + ' s)';

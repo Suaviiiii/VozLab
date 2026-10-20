@@ -395,6 +395,12 @@ async def control_service(req: OmniVoiceControlRequest):
                 detail=f"Script de inicialização não encontrado: {OMNIVOICE_LAUNCHER_PATH}"
             )
 
+        from ..utils.omnivoice_arranque import arranque_em_andamento, marcar_arranque
+
+        if arranque_em_andamento():  # um arranque por vez (ver utils/omnivoice_arranque.py)
+            return {"status": "starting", "message": "O serviço OmniVoice já está ligando; aguarde."}
+        marcar_arranque()
+
         try:
             DETACHED = 0x00000008 | 0x08000000 if os.name == "nt" else 0
             # Sem console e sem saída, o serviço trava antes de abrir a porta: a saída vai

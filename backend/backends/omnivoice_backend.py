@@ -29,6 +29,7 @@ from typing import List, Optional, Tuple
 import httpx
 import numpy as np
 
+from ..utils import omnivoice_arranque as arranque
 from .base import combine_voice_prompts as _combine_voice_prompts
 
 logger = logging.getLogger(__name__)
@@ -114,19 +115,23 @@ class OmniVoiceBackend:
         env = {k: v for k, v in os.environ.items() if k not in ("PYTHONPATH", "PYTHONHOME", "VIRTUAL_ENV")}
         log_path = Path(config.get_data_dir()) / "logs" / "omnivoice_service.log"
         log_path.parent.mkdir(parents=True, exist_ok=True)
-        logger.info("Ligando o serviço OmniVoice para gerar...")
-        with open(log_path, "ab") as log:
-            subprocess.Popen(
-                ["cmd.exe", "/c", str(OMNIVOICE_LAUNCHER_PATH)],
-                cwd=str(OMNIVOICE_LAUNCHER_PATH.parent),
-                creationflags=(0x00000008 | 0x08000000) if os.name == "nt" else 0,
-                close_fds=True,
-                stdin=subprocess.DEVNULL,
-                stdout=log,
-                stderr=subprocess.STDOUT,
-                env=env,
-            )
-        for _ in range(120):
+        if arranque.arranque_em_andamento():
+            logger.info("O serviço OmniVoice já está ligando; esperando o mesmo arranque (sem abrir outro).")
+        else:
+            arranque.marcar_arranque()
+            logger.info("Ligando o serviço OmniVoice para gerar...")
+            with open(log_path, "ab") as log:
+                subprocess.Popen(
+                    ["cmd.exe", "/c", str(OMNIVOICE_LAUNCHER_PATH)],
+                    cwd=str(OMNIVOICE_LAUNCHER_PATH.parent),
+                    creationflags=(0x00000008 | 0x08000000) if os.name == "nt" else 0,
+                    close_fds=True,
+                    stdin=subprocess.DEVNULL,
+                    stdout=log,
+                    stderr=subprocess.STDOUT,
+                    env=env,
+                )
+        for _ in range(int(arranque.ARRANQUE_MAX_S / 0.5)):
             await asyncio.sleep(0.5)
             if self._escutando():
                 try:
@@ -135,7 +140,9 @@ class OmniVoiceBackend:
                             return
                 except Exception:
                     pass
-        raise RuntimeError("O serviço OmniVoice não respondeu em 60 s. Veja logs/omnivoice_service.log.")
+        raise RuntimeError(
+            f"O serviço OmniVoice não respondeu em {arranque.ARRANQUE_MAX_S:.0f} s. Veja logs/omnivoice_service.log."
+        )
 
     async def load_model(self, model_size: str = "default") -> None:
         """Garante o serviço OmniVoice no ar (e que é a versão nova, com /v2). O modelo carrega na 1ª geração."""

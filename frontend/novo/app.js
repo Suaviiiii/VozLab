@@ -1083,7 +1083,7 @@
         try { st = await getJson('/omnivoice/status'); } catch { st = {}; }
         if (st.status !== 'online') {
           await fetch('/omnivoice/control', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({action: 'start'})});
-          for (let i = 0; i < 45; i++) {
+          for (let i = 0; i < 180; i++) {
             await new Promise((ok) => setTimeout(ok, 1000));
             try { if ((await getJson('/omnivoice/status')).status === 'online') break; } catch { /* ainda ligando */ }
           }
@@ -1154,7 +1154,7 @@
     try {
       await fetch('/omnivoice/control', {method: 'POST', headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({action: 'start'})});
-      for (let i = 1; i <= 45; i++) {
+      for (let i = 1; i <= 180; i++) {
         await new Promise((r) => setTimeout(r, 1000));
         let st = {};
         try { st = await getJson('/omnivoice/status'); } catch (_) { st = {}; }
