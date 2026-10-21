@@ -164,7 +164,8 @@
     mostrarEscolhida({origem: 'biblioteca', id: v.id, nome: v.rotulo, idioma: v.language,
       ouvir: '/profiles/' + encodeURIComponent(v.id) + '/sample-audio', refTexto: v.reference_text || '',
       tags: [NOME_IDIOMA[v.language] || v.language, 'Biblioteca do VozLab']});
-    if (v.language && NOME_IDIOMA[v.language]) $('ovp-idioma').value = v.language;
+    // O idioma do texto é escolha de quem escreve: escolher a voz não o troca mais (21/10/2026: uma voz
+    // alemã trocava "Português" por "Alemão" sem avisar, e o OmniVoice falava alemão). Só avisa a diferença.
     renderBiblioteca();
   }
 
@@ -241,7 +242,19 @@
       }));
       $('ovp-ref-texto').value = v.refTexto || '';
     }
+    avisarIdioma();
     atualizarSituacao();
+  }
+
+  function avisarIdioma() {
+    const voz = estado.escolhida && estado.escolhida.idioma;
+    const texto = $('ovp-idioma').value;
+    const diferente = Boolean(voz && texto && texto !== 'auto' && voz !== texto && NOME_IDIOMA[voz]);
+    $('ovp-idioma-aviso').hidden = !diferente;
+    if (diferente) {
+      $('ovp-idioma-aviso').textContent = 'A voz é de ' + NOME_IDIOMA[voz].toLowerCase() + ' e o texto vai sair em ' +
+        (NOME_IDIOMA[texto] || texto).toLowerCase() + '. Pode ficar com sotaque; troque o idioma do texto se quiser.';
+    }
   }
 
   // ------------------------------------------------------------------ ajustes
@@ -410,6 +423,7 @@
     document.querySelectorAll('input[name="ovp-origem"]').forEach((r) => r.addEventListener('change', () => setOrigem(r.value)));
     $('ovp-busca').addEventListener('input', () => { estado.limite = LIMITE_PASSO; renderBiblioteca(); });
     $('ovp-filtro-idioma').addEventListener('change', () => { estado.limite = LIMITE_PASSO; renderBiblioteca(); });
+    $('ovp-idioma').addEventListener('change', avisarIdioma);
     $('ovp-mais').addEventListener('click', () => { estado.limite += LIMITE_PASSO; renderBiblioteca(); });
     $('ovp-arquivo').addEventListener('change', (e) => enviarArquivo(e.target.files && e.target.files[0]));
     $('ovp-ouvir').addEventListener('click', () => {
