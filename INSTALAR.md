@@ -43,10 +43,11 @@ venv_rocm\Scripts\python.exe -m pip install -r requirements\torch_nvidia_gtx1000
 ```
 > ⚠️ Os endereços dos pacotes mudam com o tempo. Confira na fonte oficial antes: [PyTorch](https://pytorch.org/get-started/locally/), [AMD ROCm para Windows](https://rocm.docs.amd.com/projects/radeon-ryzen/en/latest/docs/compatibility/compatibilityrad/windows/windows_compatibility.html) e [AMD TheRock](https://github.com/ROCm/TheRock/blob/main/RELEASES.md).
 
-O resto dos pacotes, com versões fixas:
+O resto dos pacotes, com versões fixas. **Não esqueça o `--no-deps`:**
 ```bat
-venv_rocm\Scripts\python.exe -m pip install -r requirements\base.txt
+venv_rocm\Scripts\python.exe -m pip install --no-deps -r requirements\base.txt
 ```
+> ⚠️ Sem o `--no-deps`, o pip para com **conflito de dependências** (`ResolutionImpossible`). Isso é esperado: alguns motores de voz (ex.: Chatterbox) exigem versões antigas no papel (torch 2.6, transformers 5.2…), mas funcionam com as versões desta lista. A lista já tem **todos** os pacotes do ambiente testado, então o `--no-deps` instala exatamente esse ambiente, sem o pip tentar trocar nada.
 > Mesmo numa placa NVIDIA, o nome da pasta continua `venv_rocm`, porque é o que o lançador procura. Para trocar, use `PythonDir` no `vozlab.ini`.
 
 ## 4. Ambiente do OmniVoice (obrigatório para usar o OmniVoice)

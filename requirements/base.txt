@@ -1,5 +1,8 @@
 # Pacotes do VozLab (sem o PyTorch), congelados do ambiente testado na RX 7600 em 15/10/2026.
 # O PyTorch vem do arquivo da sua família de placa (ver INSTALAR.md).
+# INSTALE COM --no-deps: pip install --no-deps -r requirements\base.txt
+# Sem ele o pip acusa conflito (ex.: chatterbox-tts pede torch==2.6 e transformers==5.2 no papel,
+# mas roda com as versões abaixo). A lista é o ambiente completo, então nada fica faltando.
 absl-py==2.5.0
 accelerate==1.15.0
 addict==2.4.0
