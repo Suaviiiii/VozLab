@@ -230,6 +230,9 @@ class RevisorBlocos:
                 except Exception:
                     out = self._model.generate(feats, task="transcribe")
             textos.append(self._proc.batch_decode(out, skip_special_tokens=True)[0].strip())
+        # devolve à placa o que só serviu a esta escuta: o OmniVoice gera o próximo bloco com o revisor carregado
+        from ..backends.base import empty_device_cache
+        empty_device_cache(self.device)
         return " ".join(t for t in textos if t), p_idioma
 
     # -- um bloco -----------------------------------------------------------

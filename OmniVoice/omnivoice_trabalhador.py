@@ -116,12 +116,31 @@ class Cancelado(Exception):
     pass
 
 
+BUSCA_CURTA_VRAM_GB = 7.5  # a busca curta usa ~2 GB a mais de VRAM (pico de 5,0 contra 3,0 GB na RX 7600)
+
+
+def busca_curta(amd: bool, vram_gb: float) -> bool:
+    """Busca curta do MIOpen (só na AMD). Cada bloco de texto tem um tamanho de som novo, e a busca longa a cada
+    tamanho levava ~60% do tempo da voz. Medido no PANDORA em 14/11 (RX 7600, 8 blocos, 139 s de som, mesma semente):
+    700 s com a busca longa, 63 s com a curta, som igual amostra por amostra.
+    Tem de valer antes da 1ª convolução na placa. OMNIVOICE_BUSCA_LONGA=1 volta ao comportamento antigo (para medir).
+    shortcut: placa AMD com menos de 7,5 GB fica na busca longa (pico de VRAM não medido nela); baixar o limite
+    quando alguém medir numa placa menor."""
+    if amd and vram_gb >= BUSCA_CURTA_VRAM_GB and not os.environ.get("OMNIVOICE_BUSCA_LONGA"):
+        os.environ.setdefault("MIOPEN_FIND_MODE", "FAST")
+        return True
+    return False
+
+
 def principal(conexao, cancelar=None, nivel_log=logging.INFO):
     """Laço do processo filho. `cancelar` (multiprocessing.Event) para a geração entre dois passos."""
     os.environ["HSA_OVERRIDE_GFX_VERSION"] = "11.0.0"
     os.environ.setdefault("HIP_VISIBLE_DEVICES", "0")
     logging.basicConfig(level=nivel_log, format="%(asctime)s [%(levelname)s] [trabalhador] %(message)s")
     import torch
+    if torch.version.hip and busca_curta(True, torch.cuda.get_device_properties(0).total_memory / 2 ** 30
+                                         if torch.cuda.is_available() else 0.0):
+        logger.info("Busca curta do MIOpen ligada (placa AMD com 7,5 GB ou mais).")
 
     model = None
     memoria: Dict[str, Any] = {}
@@ -192,6 +211,10 @@ def principal(conexao, cancelar=None, nivel_log=logging.INFO):
                 finally:
                     if cancelar is not None:
                         cancelar.clear()
+                    # devolve à placa a sobra deste bloco: o revisor Whisper do VozLab pode estar carregado ao mesmo
+                    # tempo, e sem isso faltava memória (PANDORA, 14/11: blocos de 9-13 s viravam 54-93 s)
+                    if torch.cuda.is_available():
+                        torch.cuda.empty_cache()
                 fim = time.time()
                 if _passos:
                     logger.info(f"Geração: {len(_passos)} passos de {_passos[0] - t0:.2f}s a {_passos[-1] - t0:.2f}s; "
